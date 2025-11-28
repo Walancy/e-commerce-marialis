@@ -11,7 +11,7 @@ export const ProductCard = ({ image, title, brand, price }: ProductCardProps) =>
     return (
         <div className="flex flex-col group cursor-pointer">
             {/* Card Image Area */}
-            <div className="relative w-full aspect-square bg-[#f8f9fa] dark:bg-[#2a2a2a] rounded-2xl p-12 mb-4 transition-all duration-300 group-hover:shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800">
+            <div className="relative w-full aspect-square bg-[#f8f9fa] dark:bg-[#2a2a2a] rounded-2xl p-6 md:p-12 mb-4 transition-all duration-300 group-hover:shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800">
                 <img
                     src={image}
                     alt={title}

@@ -119,21 +119,21 @@ export const Testimonials = () => {
     };
 
     return (
-        <section className="bg-[#e5e5e5] dark:bg-[#333] py-16 mx-20 rounded-xl my-12">
+        <section className="bg-[#e5e5e5] dark:bg-[#333] py-12 md:py-16 mx-4 md:mx-20 rounded-xl my-8 md:my-12">
             <div className="w-full">
-                <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-200 text-center mb-12">O que os clientes dizem?</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-700 dark:text-gray-200 text-center mb-8 md:mb-12">O que os clientes dizem?</h2>
 
                 <div
                     ref={scrollRef}
                     onScroll={handleScroll}
-                    className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide -mx-20 px-20"
+                    className="flex gap-4 md:gap-6 overflow-x-auto pb-8 scrollbar-hide px-4 md:px-20 -mx-4 md:-mx-20"
                 >
                     {allTestimonials.map((item, index) => (
-                        <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[400px] bg-[#222] rounded-lg overflow-hidden flex shadow-lg">
+                        <div key={`${item.id}-${index}`} className="flex-shrink-0 w-[85vw] md:w-[400px] bg-[#222] rounded-lg overflow-hidden flex shadow-lg">
                             <div className="w-1/3 bg-[#333] p-4 flex items-center justify-center">
                                 <img src={item.image} alt="Product" className="w-full h-auto object-contain mix-blend-multiply opacity-80" />
                             </div>
-                            <div className="w-2/3 p-6 flex flex-col justify-center">
+                            <div className="w-2/3 p-4 md:p-6 flex flex-col justify-center">
                                 <p className="text-gray-400 text-xs leading-relaxed mb-4 line-clamp-4">
                                     "{item.text}"
                                 </p>

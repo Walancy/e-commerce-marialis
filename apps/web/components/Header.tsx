@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, ChevronDown, Check, SlidersHorizontal, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingBag, User, ChevronDown, Check, SlidersHorizontal, Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 export const Header = () => {
@@ -10,6 +10,7 @@ export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -64,12 +65,20 @@ export const Header = () => {
                         </div>
                     </div>
 
-                    <header className="flex items-center justify-between px-20 py-4 w-full mx-auto">
-                        <div className="flex items-center gap-8">
-                            {/* Logo */}
-                            <img src="/logo-marialis.svg" alt="Marialis" className="h-12 w-auto object-contain dark:invert" />
+                    <header className="flex items-center justify-between px-4 lg:px-20 py-4 w-full mx-auto relative">
+                        <div className="flex items-center gap-4 lg:gap-8">
+                            {/* Mobile Menu Button */}
+                            <button
+                                className="lg:hidden p-2 -ml-2 text-gray-700 dark:text-gray-300"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
 
-                            {/* Nav */}
+                            {/* Logo */}
+                            <img src="/logo-marialis.svg" alt="Marialis" className="h-8 md:h-10 lg:h-12 w-auto object-contain dark:invert" />
+
+                            {/* Nav Desktop */}
                             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-300">
                                 <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Loja</a>
                                 <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Equipamentos</a>
@@ -82,8 +91,8 @@ export const Header = () => {
                             </nav>
                         </div>
 
-                        {/* Search */}
-                        <div className="flex-1 max-w-xl mx-8 hidden md:block">
+                        {/* Search Desktop */}
+                        <div className="flex-1 max-w-xl mx-8 hidden lg:block">
                             <div className="relative group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gray-500 transition-colors" />
                                 <input
@@ -95,11 +104,11 @@ export const Header = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 md:gap-2">
                             {isScrolled && (
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
-                                    className={`p-2 rounded-lg transition-all mr-2 ${showFilters ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'}`}
+                                    className={`p-2 rounded-lg transition-all mr-2 hidden md:block ${showFilters ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'}`}
                                 >
                                     <SlidersHorizontal className="w-5 h-5" />
                                 </button>
@@ -111,7 +120,7 @@ export const Header = () => {
                                 <ShoppingBag className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                             </button>
-                            <button className="bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap ml-2">
+                            <button className="hidden md:block bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap ml-2">
                                 Área Profissional
                             </button>
                             <button
@@ -126,11 +135,38 @@ export const Header = () => {
                             </button>
                         </div>
                     </header>
+
+                    {/* Mobile Menu Overlay */}
+                    {mobileMenuOpen && (
+                        <div className="lg:hidden absolute top-full left-0 w-full bg-white dark:bg-[#1a1a1a] shadow-lg border-t dark:border-gray-800 p-4 flex flex-col gap-4 z-50 h-[calc(100vh-80px)] overflow-y-auto">
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    className="w-full bg-gray-100 dark:bg-[#2a2a2a] dark:text-white rounded-lg py-3 pl-10 pr-4 text-sm outline-none"
+                                />
+                            </div>
+                            <nav className="flex flex-col gap-4 text-base font-medium text-gray-600 dark:text-gray-300">
+                                <a href="#" className="py-2 border-b dark:border-gray-800">Loja</a>
+                                <a href="#" className="py-2 border-b dark:border-gray-800">Equipamentos</a>
+                                <a href="#" className="py-2 border-b dark:border-gray-800 flex items-center justify-between">
+                                    Academy
+                                    <span className="bg-black text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Novo</span>
+                                </a>
+                                <a href="#" className="py-2 border-b dark:border-gray-800">Marcas</a>
+                                <a href="#" className="py-2 border-b dark:border-gray-800 text-red-600">Ofertas</a>
+                            </nav>
+                            <button className="bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-3 rounded-lg w-full mt-4">
+                                Área Profissional
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Integrated Filter Bar */}
                 <div className={`transition-all duration-500 ease-in-out ${!isScrolled || showFilters ? 'max-h-24 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                    <div className="mx-20 mb-4 mt-2 bg-gray-100 dark:bg-[#2a2a2a] rounded-lg flex items-center justify-between p-2">
+                    <div className="mx-4 lg:mx-20 mb-4 mt-2 bg-gray-100 dark:bg-[#2a2a2a] rounded-lg flex items-center justify-between p-2 overflow-x-auto scrollbar-hide">
                         <div className="flex items-center gap-2">
                             {Object.entries({
                                 'Cabelos': ['Shampoos', 'Condicionadores', 'Máscaras', 'Finalizadores', 'Kits'],
@@ -139,7 +175,7 @@ export const Header = () => {
                                 'Pele': ['Hidratantes', 'Limpeza', 'Protetor Solar', 'Esfoliantes', 'Tratamentos']
                             }).map(([category, options]) => (
                                 <div key={category} className="relative group">
-                                    <button className="flex items-center gap-2 bg-white dark:bg-[#1a1a1a] hover:bg-gray-200 dark:hover:bg-[#333] px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 transition-all whitespace-nowrap">
+                                    <button className="flex items-center gap-2 bg-white dark:bg-[#1a1a1a] hover:bg-gray-200 dark:hover:bg-[#333] px-4 lg:px-6 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 transition-all whitespace-nowrap">
                                         {category}
                                         <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-transform group-hover:rotate-180" />
                                     </button>
