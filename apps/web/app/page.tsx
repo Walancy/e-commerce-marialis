@@ -3,10 +3,11 @@ import { HeroCarousel } from "../components/HeroCarousel";
 import { ProductList } from "../components/ProductList";
 import { Testimonials } from "../components/Testimonials";
 import { Recommendations } from "../components/Recommendations";
+import { Footer } from "../components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f8f9fa] pb-20">
+    <main className="min-h-screen bg-white dark:bg-[#1a1a1a] pb-0">
       <Header />
       <div className="w-full">
         <HeroCarousel />
@@ -14,6 +15,7 @@ export default function Home() {
       <ProductList />
       <Testimonials />
       <Recommendations />
+      <Footer />
     </main>
   );
 }

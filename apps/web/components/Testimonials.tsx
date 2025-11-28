@@ -89,8 +89,8 @@ export const Testimonials = () => {
 
     useEffect(() => {
         if (scrollRef.current) {
-            // Start in the middle set
-            scrollRef.current.scrollLeft = setWidth;
+            // Start in the middle set, shifted to show last item
+            scrollRef.current.scrollLeft = (setWidth * 2) - (itemWidth + gap);
         }
     }, [setWidth]);
 
@@ -119,9 +119,9 @@ export const Testimonials = () => {
     };
 
     return (
-        <section className="bg-[#e5e5e5] py-16 mx-20 rounded-xl my-12">
+        <section className="bg-[#e5e5e5] dark:bg-[#333] py-16 mx-20 rounded-xl my-12">
             <div className="w-full">
-                <h2 className="text-3xl font-bold text-gray-700 text-center mb-12">O que os clientes dizem?</h2>
+                <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-200 text-center mb-12">O que os clientes dizem?</h2>
 
                 <div
                     ref={scrollRef}

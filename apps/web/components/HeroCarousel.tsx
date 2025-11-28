@@ -3,7 +3,17 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Truck, Clock, RotateCcw } from 'lucide-react';
 
-const slides = [
+interface Slide {
+    id: number;
+    type: string;
+    image: string;
+    title: string;
+    subtitle: string;
+    coupons?: { val: string; min: string; code: string; }[];
+    cta?: string;
+}
+
+const slides: Slide[] = [
     {
         id: 0,
         type: 'promo',
@@ -44,7 +54,7 @@ export const HeroCarousel = () => {
 
                                     <div className="flex flex-wrap gap-3 justify-center">
                                         {slide.coupons?.map((coupon, idx) => (
-                                            <div key={idx} className="bg-white text-[#ff0040] p-2 rounded-lg shadow-lg text-center min-w-[120px] transform hover:scale-105 transition-transform cursor-pointer border-2 border-dashed border-[#ff0040]">
+                                            <div key={idx} className="bg-[#f8f9fa] text-[#ff0040] p-2 rounded-lg shadow-lg text-center min-w-[120px] transform hover:scale-105 transition-transform cursor-pointer border-2 border-dashed border-[#ff0040]">
                                                 <div className="text-lg font-black">{coupon.val}</div>
                                                 <div className="text-xs font-medium text-gray-600">{coupon.min}</div>
                                                 <div className="text-[10px] mt-1 bg-gray-100 py-0.5 px-1 rounded text-gray-500">Code: {coupon.code}</div>
@@ -54,7 +64,7 @@ export const HeroCarousel = () => {
                                 </div>
 
                                 {/* Bottom Benefits Bar */}
-                                <div className="absolute bottom-0 left-0 w-full bg-white py-2 px-6 flex justify-center gap-6 text-xs font-medium text-gray-700 shadow-inner">
+                                <div className="absolute bottom-0 left-0 w-full bg-[#f8f9fa] py-2 px-6 flex justify-center gap-6 text-xs font-medium text-gray-700 shadow-inner">
                                     <div className="flex items-center gap-1.5"><Truck size={14} className="text-[#ff0040]" /> Frete grátis acima de R$99</div>
                                     <div className="flex items-center gap-1.5"><Clock size={14} className="text-[#ff0040]" /> Entrega rápida</div>
                                     <div className="flex items-center gap-1.5"><RotateCcw size={14} className="text-[#ff0040]" /> Devoluções grátis</div>
@@ -72,7 +82,7 @@ export const HeroCarousel = () => {
                                     <div className="text-white max-w-xl space-y-4 translate-y-4 opacity-0 animate-fade-in-up pl-12">
                                         <h2 className="text-3xl font-bold leading-tight">{slide.title}</h2>
                                         <p className="text-lg text-gray-200">{slide.subtitle}</p>
-                                        <button className="bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-100 transition-colors text-sm">
+                                        <button className="bg-[#f8f9fa] text-black px-6 py-2 rounded-full font-bold hover:bg-gray-100 transition-colors text-sm">
                                             {slide.cta}
                                         </button>
                                     </div>
@@ -90,7 +100,7 @@ export const HeroCarousel = () => {
                             <button
                                 key={i}
                                 onClick={() => setCurrent(i)}
-                                className={`w-2 h-2 rounded-full transition-all shadow-sm ${current === i ? "bg-white w-6" : "bg-white/50 hover:bg-white/80"
+                                className={`w-2 h-2 rounded-full transition-all shadow-sm ${current === i ? "bg-[#f8f9fa] w-6" : "bg-[#f8f9fa]/50 hover:bg-[#f8f9fa]/80"
                                     }`}
                             />
                         ))}
