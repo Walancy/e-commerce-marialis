@@ -5,27 +5,27 @@ import React from 'react';
 const recommendations = [
     {
         id: 1,
-        image: '/hair-blonde.png',
+        image: '/Loiro recém descolorido..png',
         title: "Loiro recém descolorido.",
-        description: "Descrição do cabelo ipsum has been the industry's standard dummy text ever since the 1500"
+        description: "Cuidados especiais para manter o tom vibrante e a saúde dos fios descoloridos."
     },
     {
         id: 2,
-        image: '/hair-straight.png',
+        image: '/Pós alisamento.png',
         title: "Pós alisamento",
-        description: "Descrição do cabelo ipsum has been the industry's standard dummy text ever since the 1500"
+        description: "Hidratação intensa e proteção para prolongar o efeito liso e o brilho."
     },
     {
         id: 3,
-        image: '/hair-afro.png', // Fallback if generation failed, user can replace
+        image: '/Afro fios crespos.png',
         title: "Afro fios crespos",
-        description: "Descrição do cabelo ipsum has been the industry's standard dummy text ever since the 1500"
+        description: "Nutrição profunda para definição, maciez e força dos seus cachos."
     },
     {
         id: 4,
-        image: '/hair-wavy.png', // Fallback if generation failed
+        image: '/Ondulado tipo 2.png',
         title: "Ondulado tipo 2",
-        description: "Descrição do cabelo ipsum has been the industry's standard dummy text ever since the 1500"
+        description: "Leveza e controle do frizz para ondas definidas e com movimento natural."
     }
 ];
 
@@ -35,7 +35,7 @@ export const Recommendations = () => {
             <div className="w-full px-20">
                 <div className="text-center mb-12">
                     <p className="text-gray-500 text-sm uppercase tracking-wide mb-2">Nossas recomendações.</p>
-                    <h2 className="text-3xl font-black text-gray-800 dark:text-white">Qual o melhor produto para meu cabelo?</h2>
+                    <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Qual o melhor produto para meu cabelo?</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -9,6 +9,11 @@ export const Header = () => {
     const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
     const [isScrolled, setIsScrolled] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -69,7 +74,7 @@ export const Header = () => {
                                 <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Loja</a>
                                 <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Equipamentos</a>
                                 <a href="#" className="flex items-center gap-1 hover:text-black dark:hover:text-white transition-colors">
-                                    Academia
+                                    Academy
                                     <span className="bg-black text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Novo</span>
                                 </a>
                                 <a href="#" className="hover:text-black dark:hover:text-white transition-colors">Marcas</a>
@@ -113,7 +118,11 @@ export const Header = () => {
                                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                             >
-                                {theme === "dark" ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-gray-700" />}
+                                {mounted ? (
+                                    theme === "dark" ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                ) : (
+                                    <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                                )}
                             </button>
                         </div>
                     </header>
