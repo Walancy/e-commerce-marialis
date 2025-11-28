@@ -1,0 +1,30 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+    content: [
+        "./app/**/*.{js,ts,jsx,tsx,mdx}",
+        "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+        "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    ],
+    theme: {
+        extend: {
+            colors: {
+                'aww-black': '#212529',
+                'aww-gray': '#f8f9fa',
+                'aww-accent': '#fd7e14',
+            },
+            fontFamily: {
+                sans: ['var(--font-inter)', 'sans-serif'],
+            },
+            keyframes: {
+                ticker: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-100%)' },
+                }
+            },
+            animation: {
+                ticker: 'ticker 40s linear infinite',
+            }
+        },
+    },
+    plugins: [],
+}
