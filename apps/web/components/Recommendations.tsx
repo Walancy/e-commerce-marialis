@@ -31,11 +31,11 @@ const recommendations = [
 
 export const Recommendations = () => {
     return (
-        <section className="py-20 bg-[#f8f9fa]">
+        <section className="py-20 bg-white dark:bg-[#1a1a1a]">
             <div className="w-full px-20">
                 <div className="text-center mb-12">
                     <p className="text-gray-500 text-sm uppercase tracking-wide mb-2">Nossas recomendações.</p>
-                    <h2 className="text-3xl font-black text-gray-800">Qual o melhor produto para meu cabelo?</h2>
+                    <h2 className="text-3xl font-black text-gray-800 dark:text-white">Qual o melhor produto para meu cabelo?</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -52,7 +52,7 @@ export const Recommendations = () => {
                                     }}
                                 />
                             </div>
-                            <h3 className="font-bold text-gray-900 text-lg mb-1">{item.title}</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1">{item.title}</h3>
                             <p className="text-gray-500 text-[10px] max-w-[200px] leading-tight">
                                 {item.description}
                             </p>
