@@ -46,13 +46,13 @@ export const HeroCarousel = () => {
                             // Black Friday Slide Layout
                             <div className="w-full h-full bg-[#ff0040] flex items-center justify-center relative overflow-hidden pb-16 md:pb-0">
                                 <div className="absolute inset-0 bg-[url('/banner-bf.png')] bg-cover bg-center md:bg-right bg-no-repeat opacity-30 md:opacity-100 md:bg-contain md:bg-right-bottom"></div>
-                                <div className="container mx-auto px-6 z-10 flex flex-col justify-center items-center h-full max-w-7xl pb-8 pt-12 md:pt-0">
-                                    <div className="text-white font-bold mb-2 text-sm md:text-base text-center bg-black/20 md:bg-transparent px-4 py-1 rounded-full">{slide.subtitle}</div>
-                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight max-w-3xl drop-shadow-md text-center uppercase">
+                                <div className="container mx-auto px-6 z-10 flex flex-col justify-center items-start h-full max-w-7xl pb-8 pt-12 md:pt-0">
+                                    <div className="text-white font-bold mb-2 text-sm md:text-base bg-black/20 md:bg-transparent px-4 py-1 rounded-full">{slide.subtitle}</div>
+                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight max-w-3xl drop-shadow-md uppercase">
                                         {slide.title}
                                     </h2>
 
-                                    <div className="flex flex-wrap gap-3 justify-center max-w-md md:max-w-none">
+                                    <div className="flex flex-wrap gap-3 justify-start max-w-md md:max-w-none">
                                         {slide.coupons?.map((coupon, idx) => (
                                             <div key={idx} className="bg-[#f8f9fa] text-[#ff0040] p-3 md:p-4 rounded-xl shadow-lg text-center min-w-[140px] transform hover:scale-105 transition-transform cursor-pointer border-2 border-dashed border-[#ff0040]">
                                                 <div className="text-xl md:text-2xl font-black">{coupon.val}</div>

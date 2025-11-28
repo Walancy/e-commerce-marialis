@@ -2,6 +2,7 @@ import { Header } from "../components/Header";
 import { HeroCarousel } from "../components/HeroCarousel";
 import { ProductList } from "../components/ProductList";
 import { Testimonials } from "../components/Testimonials";
+import { BrandsSection } from "../components/BrandsSection";
 import { Recommendations } from "../components/Recommendations";
 import { Footer } from "../components/Footer";
 
@@ -15,6 +16,7 @@ export default function Home() {
       <ProductList />
       <Testimonials />
       <Recommendations />
+      <BrandsSection />
       <Footer />
     </main>
   );

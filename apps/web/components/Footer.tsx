@@ -7,7 +7,7 @@ export const Footer = () => {
             <div className="bg-[#111111] dark:bg-[#000] text-white rounded-t-[40px] px-8 md:px-16 py-12 md:py-16">
                 {/* Top Section: Revendedor & Socials (Matching the image style) */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
-                    <a href="#" className="text-lg font-medium underline underline-offset-4 hover:text-gray-300 transition-colors">
+                    <a href="/encontre-revendedor" className="text-lg font-medium underline underline-offset-4 hover:text-gray-300 transition-colors">
                         Encontre um revendedor.
                     </a>
 
@@ -16,7 +16,7 @@ export const Footer = () => {
                             <Instagram size={20} />
                         </a>
                         <a href="#" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
-                            <Phone size={20} /> {/* Using Phone as WhatsApp placeholder if needed, or just generic contact */}
+                            <Phone size={20} />
                         </a>
                         <a href="#" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
                             <Facebook size={20} />
@@ -34,7 +34,7 @@ export const Footer = () => {
                         </p>
                         <div className="flex items-center gap-2 text-gray-400 text-sm">
                             <MapPin size={16} />
-                            <span>São Paulo, Brasil</span>
+                            <span>Campo Mourão, Paraná, Brasil</span>
                         </div>
                     </div>
 
@@ -52,10 +52,10 @@ export const Footer = () => {
                     <div className="md:col-span-2 space-y-6">
                         <h3 className="font-bold text-lg">Institucional</h3>
                         <ul className="space-y-4 text-gray-400 text-sm">
-                            <li><a href="#" className="hover:text-white transition-colors">Sobre a Marialis</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Seja um Revendedor</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Trabalhe Conosco</a></li>
-                            <li><a href="#" className="hover:text-white transition-colors">Política de Privacidade</a></li>
+                            <li><a href="/sobre" className="hover:text-white transition-colors">Sobre a Marialis</a></li>
+                            <li><a href="/revendedor" className="hover:text-white transition-colors">Seja um Revendedor</a></li>
+                            <li><a href="/trabalhe-conosco" className="hover:text-white transition-colors">Trabalhe Conosco</a></li>
+                            <li><a href="/politica-privacidade" className="hover:text-white transition-colors">Política de Privacidade</a></li>
                         </ul>
                     </div>
 
@@ -68,7 +68,7 @@ export const Footer = () => {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Phone size={16} />
-                                <span>0800 123 4567</span>
+                                <span>+55 44 8850-0440</span>
                             </li>
                             <li className="pt-2">
                                 <span className="block text-xs text-gray-500 mb-1">Horário de atendimento</span>
@@ -80,10 +80,10 @@ export const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-                    <p>© 2024 Marialis Cosméticos. Todos os direitos reservados.</p>
+                    <p>© 2025 Marialis Cosméticos. Todos os direitos reservados.</p>
                     <div className="flex gap-6">
-                        <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
-                        <a href="#" className="hover:text-white transition-colors">Política de Troca</a>
+                        <a href="/termos-de-uso" className="hover:text-white transition-colors">Termos de Uso</a>
+                        <a href="/politica-de-troca" className="hover:text-white transition-colors">Política de Troca</a>
                     </div>
                 </div>
             </div>
