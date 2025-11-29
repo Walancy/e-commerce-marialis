@@ -3,6 +3,7 @@
 import React from 'react';
 import { Save, Bell, Globe, CreditCard, Truck } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { Checkbox } from '../../../components/ui/Checkbox';
 
 export default function SettingsPage() {
     return (
@@ -45,15 +46,15 @@ export default function SettingsPage() {
                             <div className="space-y-2">
                                 <label className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">Cartão de Crédito</span>
-                                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-black" />
+                                    <Checkbox defaultChecked />
                                 </label>
                                 <label className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">PIX</span>
-                                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-black" />
+                                    <Checkbox defaultChecked />
                                 </label>
                                 <label className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">Boleto</span>
-                                    <input type="checkbox" className="w-4 h-4 accent-black" />
+                                    <Checkbox />
                                 </label>
                             </div>
                         </div>
@@ -73,7 +74,7 @@ export default function SettingsPage() {
                                 </div>
                                 <label className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <span className="text-xs font-medium text-gray-900 dark:text-white">Retirada em Loja</span>
-                                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-black" />
+                                    <Checkbox defaultChecked />
                                 </label>
                             </div>
                         </div>
@@ -89,15 +90,15 @@ export default function SettingsPage() {
                         </h2>
                         <div className="space-y-3">
                             <label className="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" defaultChecked className="w-4 h-4 accent-black" />
+                                <Checkbox defaultChecked />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">E-mail a cada venda</span>
                             </label>
                             <label className="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" defaultChecked className="w-4 h-4 accent-black" />
+                                <Checkbox defaultChecked />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">Alerta de estoque baixo</span>
                             </label>
                             <label className="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" className="w-4 h-4 accent-black" />
+                                <Checkbox />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">Novidades da plataforma</span>
                             </label>
                         </div>
