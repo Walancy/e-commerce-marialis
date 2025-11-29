@@ -7,6 +7,7 @@ import { Dropdown } from '../../../components/ui/Dropdown';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Switch } from '../../../components/ui/Switch';
+import { ConfirmModal } from '../../../components/ui/Modal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -56,6 +57,9 @@ export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<number | null>(null);
+    const [isBulkDelete, setIsBulkDelete] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
@@ -242,9 +246,19 @@ export default function ProductsPage() {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Tem certeza que deseja excluir este produto?')) {
-            setProducts(products.filter(p => p.id !== id));
-            setSelectedProductIds(selectedProductIds.filter(pid => pid !== id));
+        setProductToDelete(id);
+        setIsBulkDelete(false);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (isBulkDelete) {
+            setProducts(products.filter(p => !selectedProductIds.includes(p.id)));
+            setSelectedProductIds([]);
+        } else if (productToDelete) {
+            setProducts(products.filter(p => p.id !== productToDelete));
+            setSelectedProductIds(selectedProductIds.filter(pid => pid !== productToDelete));
+            setProductToDelete(null);
         }
     };
 
@@ -265,10 +279,8 @@ export default function ProductsPage() {
     };
 
     const handleBulkDelete = () => {
-        if (confirm(`Tem certeza que deseja excluir ${selectedProductIds.length} produtos?`)) {
-            setProducts(products.filter(p => !selectedProductIds.includes(p.id)));
-            setSelectedProductIds([]);
-        }
+        setIsBulkDelete(true);
+        setIsDeleteModalOpen(true);
     };
 
     const handleTogglePromotion = (id: number, active: boolean) => {
@@ -814,7 +826,6 @@ export default function ProductsPage() {
                                     </div>
                                 </div>
                             </form>
-
                             {/* Footer */}
                             <div className="px-6 py-4 border-t dark:border-white/10 bg-gray-50 dark:bg-white/5 flex justify-end gap-3">
                                 <Button
@@ -833,6 +844,20 @@ export default function ProductsPage() {
                     </div>
                 )
             }
-        </div >
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title={isBulkDelete ? "Excluir Produtos" : "Excluir Produto"}
+                description={isBulkDelete
+                    ? `Tem certeza que deseja excluir ${selectedProductIds.length} produtos selecionados? Esta ação não pode ser desfeita.`
+                    : "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
+                }
+                confirmText="Excluir"
+                variant="danger"
+            />
+        </div>
     );
 }
