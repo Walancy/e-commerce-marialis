@@ -5,6 +5,8 @@ import { Plus, Edit, Trash2, Filter, X, Upload, Image as ImageIcon, Save, Search
 import { Button } from '../../../components/ui/Button';
 import { Dropdown } from '../../../components/ui/Dropdown';
 import { Checkbox } from '../../../components/ui/Checkbox';
+import { DataTable } from '../../../components/ui/DataTable';
+import { Switch } from '../../../components/ui/Switch';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -254,9 +256,30 @@ export default function ProductsPage() {
         }
     };
 
+    const handleTogglePromotion = (id: number, active: boolean) => {
+        setProducts(products.map(p => {
+            if (p.id === id) {
+                return {
+                    ...p,
+                    isPromotionActive: active,
+                    promotionalPrice: active && !p.promotionalPrice ? p.price : p.promotionalPrice
+                };
+            }
+            return p;
+        }));
+    };
+
     const handleBulkPromotion = (active: boolean) => {
-        setProducts(products.map(p => selectedProductIds.includes(p.id) ? { ...p, isPromotionActive: active } : p));
-        setSelectedProductIds([]);
+        setProducts(products.map(p => {
+            if (selectedProductIds.includes(p.id)) {
+                return {
+                    ...p,
+                    isPromotionActive: active,
+                    promotionalPrice: active && !p.promotionalPrice ? p.price : p.promotionalPrice
+                };
+            }
+            return p;
+        }));
     };
 
     const handleBulkStatusChange = (status: 'Ativo' | 'Rascunho' | 'Esgotado') => {
@@ -296,6 +319,10 @@ export default function ProductsPage() {
         alert('Funcionalidade de importação seria implementada aqui (requer processamento de arquivo).');
     };
 
+    const allSelectedArePromoted = selectedProductIds.length > 0 && selectedProductIds.every(id =>
+        products.find(p => p.id === id)?.isPromotionActive
+    );
+
     return (
         <div className="p-6 max-w-[1600px] mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -326,7 +353,7 @@ export default function ProductsPage() {
             {/* Filters Bar */}
             <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden pb-2 lg:pb-0">
+                    <div className="flex flex-wrap items-center gap-4">
                         <div className="w-48">
                             <label className="block text-xs font-medium text-gray-500 mb-1">Marca</label>
                             <Dropdown
@@ -375,12 +402,14 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-4">
                         <span className="font-bold text-sm">{selectedProductIds.length} selecionados</span>
                         <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
-                        <button onClick={() => handleBulkPromotion(true)} className="text-sm hover:underline flex items-center gap-1">
-                            <Check className="w-3 h-3" /> Ativar Promoção
-                        </button>
-                        <button onClick={() => handleBulkPromotion(false)} className="text-sm hover:underline flex items-center gap-1">
-                            <X className="w-3 h-3" /> Desativar Promoção
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={allSelectedArePromoted}
+                                onChange={(checked) => handleBulkPromotion(checked)}
+                                className={allSelectedArePromoted ? '!bg-green-500' : '!bg-white/20'}
+                            />
+                            <span className="text-sm font-medium">Promoção</span>
+                        </div>
                         <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
                         <div className="flex items-center gap-2">
                             <span className="text-sm opacity-70">Alterar Status:</span>
@@ -405,158 +434,178 @@ export default function ProductsPage() {
             )}
 
             {/* Products Table */}
-            <div className="bg-white dark:bg-[#121212] rounded-xl border dark:border-white/5 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 border-b dark:border-white/5">
-                            <tr>
-                                <th className="px-6 py-4 w-10">
-                                    <Checkbox
-                                        checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0}
-                                        onChange={toggleSelectAll}
+            <DataTable<Product>
+                data={filteredProducts}
+                keyField="id"
+                selectedIds={selectedProductIds}
+                onSelectAll={toggleSelectAll}
+                onSelectOne={toggleSelectProduct}
+                onRowClick={(product) => router.push(`/admin/produtos/${product.id}`)}
+                columns={[
+                    {
+                        header: 'Produto',
+                        accessorKey: 'name',
+                        sortable: true,
+                        cell: (product) => (
+                            <div className="flex items-center gap-4">
+                                {/* Brand Logo - Updated Styling */}
+                                <div className="w-12 h-12 flex items-center justify-center p-2 shrink-0">
+                                    <img
+                                        src={brandLogos[product.brand] || '/icon-marialis.png'}
+                                        alt={product.brand}
+                                        className="w-full h-full object-contain brightness-0 dark:brightness-0 dark:invert"
                                     />
-                                </th>
-                                <th className="px-6 py-4 font-medium">Produto</th>
-                                <th className="px-6 py-4 font-medium">Categoria</th>
-                                <th className="px-6 py-4 font-medium">Preço</th>
-                                <th className="px-6 py-4 font-medium">Estoque</th>
-                                <th className="px-6 py-4 font-medium">Vendas (30d)</th>
-                                <th className="px-6 py-4 font-medium">Status</th>
-                                <th className="px-6 py-4 font-medium text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y dark:divide-white/5">
-                            {filteredProducts.map((product) => (
-                                <tr
-                                    key={product.id}
-                                    className={`hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group cursor-pointer ${selectedProductIds.includes(product.id) ? 'bg-gray-50 dark:bg-white/5' : ''}`}
+                                </div>
+
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0">
+                                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                    {product.isPromotionActive && (
+                                        <div className="absolute top-0 right-0 bg-red-500 w-3 h-3 rounded-bl-lg" />
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white group-hover:underline decoration-1 underline-offset-2">{product.name}</p>
+                                    <p className="text-xs text-gray-500">{product.brand} • {product.sku}</p>
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Categoria',
+                        accessorKey: 'category',
+                        sortable: true,
+                        className: 'text-gray-600 dark:text-gray-400',
+                        cell: (product) => (
+                            <>
+                                <span className="block">{product.category}</span>
+                                <span className="text-xs text-gray-400">{product.subcategory}</span>
+                            </>
+                        )
+                    },
+                    {
+                        header: 'Preço',
+                        accessorKey: 'price',
+                        sortable: true,
+                        className: 'font-medium text-gray-900 dark:text-white',
+                        cell: (product) => (
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    {product.isPromotionActive ? (
+                                        <div className="flex flex-col">
+                                            <span className="text-red-500 font-bold">
+                                                {(product.promotionalPrice || product.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                            </span>
+                                            <span className="text-xs text-gray-400 line-through">
+                                                {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                                    )}
+                                </div>
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <Switch
+                                        checked={product.isPromotionActive}
+                                        onChange={(checked) => handleTogglePromotion(product.id, checked)}
+                                    />
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Estoque',
+                        accessorKey: 'stock',
+                        sortable: true,
+                        className: 'text-gray-600 dark:text-gray-400',
+                        cell: (product) => `${product.stock} un`
+                    },
+                    {
+                        header: 'Vendas (30d)',
+                        accessorKey: 'sales30d',
+                        sortable: true,
+                        cell: (product) => (
+                            <>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-gray-900 dark:text-white">{product.sales30d}</span>
+                                    <span className="text-xs text-gray-400">vendas</span>
+                                </div>
+                                <div className="w-24 h-1 bg-gray-100 dark:bg-white/10 rounded-full mt-1 overflow-hidden">
+                                    <div
+                                        className="h-full bg-green-500 rounded-full"
+                                        style={{ width: `${Math.min((product.sales30d / 200) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </>
+                        )
+                    },
+                    {
+                        header: 'Status',
+                        accessorKey: 'status',
+                        sortable: true,
+                        cell: (product) => (
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.status === 'Ativo'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+                                : product.status === 'Esgotado'
+                                    ? 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400'
+                                }`}>
+                                {product.status}
+                            </span>
+                        )
+                    },
+                    {
+                        header: 'Ações',
+                        className: 'text-right',
+                        cell: (product) => (
+                            <div className="flex items-center justify-end gap-1">
+                                <button
                                     onClick={(e) => {
-                                        if ((e.target as HTMLElement).closest('input[type="checkbox"]') || (e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return;
+                                        e.stopPropagation();
+                                        // Duplicate logic
+                                        const newProduct = { ...product, id: Math.max(...products.map(p => p.id)) + 1, name: `${product.name} (Cópia)`, status: 'Rascunho' as const };
+                                        setProducts([...products, newProduct]);
+                                    }}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
+                                    title="Duplicar"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         router.push(`/admin/produtos/${product.id}`);
                                     }}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
+                                    title="Editar"
                                 >
-                                    <td className="px-6 py-4">
-                                        <Checkbox
-                                            checked={selectedProductIds.includes(product.id)}
-                                            onChange={() => toggleSelectProduct(product.id)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-4">
-                                            {/* Brand Logo - Increased Size */}
-                                            <div className="w-12 h-12 rounded-xl bg-white dark:bg-white/10 border dark:border-white/10 flex items-center justify-center p-2 shadow-sm shrink-0">
-                                                <img
-                                                    src={brandLogos[product.brand] || '/icon-marialis.png'}
-                                                    alt={product.brand}
-                                                    className="w-full h-full object-contain"
-                                                />
-                                            </div>
-
-                                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0">
-                                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                                {product.isPromotionActive && (
-                                                    <div className="absolute top-0 right-0 bg-red-500 w-3 h-3 rounded-bl-lg" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-white group-hover:underline decoration-1 underline-offset-2">{product.name}</p>
-                                                <p className="text-xs text-gray-500">{product.brand} • {product.sku}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                        <span className="block">{product.category}</span>
-                                        <span className="text-xs text-gray-400">{product.subcategory}</span>
-                                    </td>
-                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                        {product.isPromotionActive && product.promotionalPrice ? (
-                                            <div className="flex flex-col">
-                                                <span className="text-red-500 font-bold">{product.promotionalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                                                <span className="text-xs text-gray-400 line-through">{product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                                            </div>
-                                        ) : (
-                                            product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                        {product.stock} un
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-gray-900 dark:text-white">{product.sales30d}</span>
-                                            <span className="text-xs text-gray-400">vendas</span>
-                                        </div>
-                                        <div className="w-24 h-1 bg-gray-100 dark:bg-white/10 rounded-full mt-1 overflow-hidden">
-                                            <div
-                                                className="h-full bg-green-500 rounded-full"
-                                                style={{ width: `${Math.min((product.sales30d / 200) * 100, 100)}%` }}
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.status === 'Ativo'
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-                                            : product.status === 'Esgotado'
-                                                ? 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'
-                                                : 'bg-gray-100 text-gray-700 dark:bg-gray-500/10 dark:text-gray-400'
-                                            }`}>
-                                            {product.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Duplicate logic
-                                                    const newProduct = { ...product, id: Math.max(...products.map(p => p.id)) + 1, name: `${product.name} (Cópia)`, status: 'Rascunho' as const };
-                                                    setProducts([...products, newProduct]);
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-black dark:hover:text-white transition-colors"
-                                                title="Duplicar"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    router.push(`/admin/produtos/${product.id}`);
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-black dark:hover:text-white transition-colors"
-                                                title="Editar"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // View in store logic (mock)
-                                                    window.open(`/produto/${product.sku}`, '_blank');
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-black dark:hover:text-white transition-colors"
-                                                title="Ver na Loja"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(product.id);
-                                                }}
-                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
-                                                title="Excluir"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table >
-                </div >
-            </div >
+                                    <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        // View in store logic (mock)
+                                        window.open(`/produto/${product.sku}`, '_blank');
+                                    }}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
+                                    title="Ver na Loja"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(product.id);
+                                    }}
+                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-400 hover:text-red-500 dark:text-gray-500 transition-colors"
+                                    title="Excluir"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )
+                    }
+                ]}
+            />
 
             {/* Modal */}
             {
