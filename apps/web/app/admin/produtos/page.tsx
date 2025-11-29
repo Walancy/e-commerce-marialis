@@ -367,7 +367,20 @@ export default function ProductsPage() {
 
             {/* Filters Bar */}
             <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="relative w-full lg:flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar produtos..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
+                        />
+                    </div>
+
+                    <div className="h-px w-full lg:h-10 lg:w-px bg-gray-200 dark:bg-white/10" />
+
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="w-48">
                             <label className="block text-xs font-medium text-gray-500 mb-1">Marca</label>
@@ -396,17 +409,6 @@ export default function ProductsPage() {
                                 onChange={setFilterSubcategory}
                             />
                         </div>
-                    </div>
-
-                    <div className="relative w-full lg:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Buscar produtos..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
-                        />
                     </div>
                 </div>
             </div>
@@ -480,13 +482,11 @@ export default function ProductsPage() {
                                     )}
                                 </div>
 
-                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0">
-                                    {product.images && product.images.length > 0 && product.images[0] ? (
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0 flex items-center justify-center">
+                                    {product.images?.[0] ? (
                                         <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-white/5">
-                                            <ImageOff className="w-4 h-4 text-gray-400" />
-                                        </div>
+                                        <ImageIcon className="w-5 h-5 text-gray-300 dark:text-gray-600" />
                                     )}
                                     {product.isPromotionActive && (
                                         <div className="absolute top-0 right-0 bg-red-500 w-3 h-3 rounded-bl-lg" />
