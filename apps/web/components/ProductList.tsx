@@ -11,7 +11,7 @@ const allProducts = Array.from({ length: 50 }, (_, i) => ({
 
 export const ProductList = () => {
     return (
-        <section className="py-12 max-w-[1400px] mx-auto px-4">
+        <section className="pt-4 pb-12 max-w-[1400px] mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">Destaques</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-8">
                 {allProducts.map((product) => (

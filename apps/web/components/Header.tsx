@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search, ShoppingBag, User, ChevronDown, Check, SlidersHorizontal, Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { CartDrawer } from './CartDrawer';
 
 export const Header = () => {
     const { theme, setTheme } = useTheme();
@@ -12,6 +13,7 @@ export const Header = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [cartOpen, setCartOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -47,6 +49,8 @@ export const Header = () => {
 
     return (
         <div className="w-full font-sans">
+            <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+
             {/* Fixed Header Container */}
             <div className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
                 <div className="bg-white dark:bg-[#1a1a1a]">
@@ -136,16 +140,19 @@ export const Header = () => {
                                     )}
                                 </button>
                             )}
-                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                            <a href="/perfil" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                                 <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                            </button>
-                            <button className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                            </a>
+                            <button
+                                onClick={() => setCartOpen(true)}
+                                className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                            >
                                 <ShoppingBag className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                             </button>
-                            <button className="hidden md:block bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap ml-2">
+                            <a href="/admin" className="hidden md:block bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap ml-2">
                                 Área Administrativa
-                            </button>
+                            </a>
                             <button
                                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -181,9 +188,9 @@ export const Header = () => {
                                 <a href="/marcas" className="py-2 border-b dark:border-gray-800">Marcas</a>
                                 <a href="/ofertas" className="py-2 border-b dark:border-gray-800 text-red-600">Ofertas</a>
                             </nav>
-                            <button className="bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-3 rounded-lg w-full mt-4">
+                            <a href="/admin" className="bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-3 rounded-lg w-full mt-4 text-center">
                                 Área Administrativa
-                            </button>
+                            </a>
                         </div>
                     )}
                 </div>
