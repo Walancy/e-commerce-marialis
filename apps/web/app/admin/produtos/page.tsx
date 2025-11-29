@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Filter, X, Upload, Image as ImageIcon, Save, Search, ChevronDown, Check, MoreHorizontal, Download, FileSpreadsheet, Tag, Copy, Eye, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Filter, X, Upload, Image as ImageIcon, Save, Search, ChevronDown, Check, MoreHorizontal, Download, FileSpreadsheet, Tag, Copy, Eye, Package, ImageOff } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Dropdown } from '../../../components/ui/Dropdown';
 import { Checkbox } from '../../../components/ui/Checkbox';
@@ -151,6 +151,21 @@ export default function ProductsPage() {
             status: 'Ativo',
             images: ["https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=100"],
             sales30d: 156
+        },
+        {
+            id: 7,
+            name: "Produto Sem Imagem Teste",
+            description: "Teste de placeholder.",
+            price: 199.90,
+            isPromotionActive: false,
+            category: "Móveis",
+            subcategory: "Cadeiras",
+            brand: "ArtBelle",
+            stock: 5,
+            sku: "ART-CAD-001",
+            status: 'Rascunho',
+            images: [],
+            sales30d: 0
         },
     ]);
 
@@ -351,7 +366,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Filters Bar */}
-            <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
+            <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="w-48">
@@ -398,7 +413,7 @@ export default function ProductsPage() {
 
             {/* Bulk Actions Bar */}
             {selectedProductIds.length > 0 && (
-                <div className="mb-6 bg-black dark:bg-white text-white dark:text-black p-4 rounded-xl shadow-lg flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
+                <div className="mb-6 bg-black dark:bg-white text-white dark:text-black p-4 rounded-xl flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
                     <div className="flex items-center gap-4">
                         <span className="font-bold text-sm">{selectedProductIds.length} selecionados</span>
                         <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
@@ -450,21 +465,35 @@ export default function ProductsPage() {
                             <div className="flex items-center gap-4">
                                 {/* Brand Logo - Updated Styling */}
                                 <div className="w-12 h-12 flex items-center justify-center p-2 shrink-0">
-                                    <img
-                                        src={brandLogos[product.brand] || '/icon-marialis.png'}
-                                        alt={product.brand}
-                                        className="w-full h-full object-contain brightness-0 dark:brightness-0 dark:invert"
-                                    />
+                                    {brandLogos[product.brand] ? (
+                                        <img
+                                            src={brandLogos[product.brand]}
+                                            alt={product.brand}
+                                            className="w-full h-full object-contain brightness-0 dark:brightness-0 dark:invert"
+                                        />
+                                    ) : (
+                                        <div className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-white/10 rounded-full" title={product.brand}>
+                                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                                                {product.brand.charAt(0).toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0">
-                                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                    {product.images && product.images.length > 0 && product.images[0] ? (
+                                        <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-white/5">
+                                            <ImageOff className="w-4 h-4 text-gray-400" />
+                                        </div>
+                                    )}
                                     {product.isPromotionActive && (
                                         <div className="absolute top-0 right-0 bg-red-500 w-3 h-3 rounded-bl-lg" />
                                     )}
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white group-hover:underline decoration-1 underline-offset-2">{product.name}</p>
+                                    <p className="font-medium text-gray-900 dark:text-white group-hover:underline decoration-1 underline-offset-2 line-clamp-1">{product.name}</p>
                                     <p className="text-xs text-gray-500">{product.brand} • {product.sku}</p>
                                 </div>
                             </div>
@@ -474,7 +503,7 @@ export default function ProductsPage() {
                         header: 'Categoria',
                         accessorKey: 'category',
                         sortable: true,
-                        className: 'text-gray-600 dark:text-gray-400',
+                        className: 'text-gray-600 dark:text-gray-400 hidden xl:table-cell',
                         cell: (product) => (
                             <>
                                 <span className="block">{product.category}</span>
@@ -516,13 +545,14 @@ export default function ProductsPage() {
                         header: 'Estoque',
                         accessorKey: 'stock',
                         sortable: true,
-                        className: 'text-gray-600 dark:text-gray-400',
+                        className: 'text-gray-600 dark:text-gray-400 hidden lg:table-cell',
                         cell: (product) => `${product.stock} un`
                     },
                     {
                         header: 'Vendas (30d)',
                         accessorKey: 'sales30d',
                         sortable: true,
+                        className: 'hidden 2xl:table-cell',
                         cell: (product) => (
                             <>
                                 <div className="flex items-center gap-2">
@@ -611,7 +641,7 @@ export default function ProductsPage() {
             {
                 isModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-white dark:bg-[#121212] w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                        <div className="bg-white dark:bg-[#121212] w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
                             {/* Header */}
                             <div className="px-6 py-4 border-b dark:border-white/10 flex items-center justify-between bg-gray-50 dark:bg-white/5">
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">

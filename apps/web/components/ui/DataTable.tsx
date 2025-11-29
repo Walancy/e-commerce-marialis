@@ -55,7 +55,7 @@ export function DataTable<T>({
     }, [data, sortConfig]);
 
     return (
-        <div className="bg-white dark:bg-[#121212] rounded-xl border dark:border-white/5 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#121212] rounded-xl border dark:border-white/5 overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 border-b dark:border-white/5">

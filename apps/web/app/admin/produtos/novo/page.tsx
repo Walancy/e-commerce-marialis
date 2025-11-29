@@ -47,7 +47,7 @@ export default function NewProductPage() {
     const searchParams = useSearchParams();
     const isKit = searchParams.get('type') === 'kit';
 
-    const [activeTab, setActiveTab] = useState(isKit ? 'composition' : 'pricing');
+    const [activeTab, setActiveTab] = useState(isKit ? 'composition' : 'settings');
 
     const subcategories: Record<string, string[]> = {
         'Elétricos': ['Secadores', 'Pranchas', 'Modeladores', 'Máquinas'],
@@ -131,9 +131,10 @@ export default function NewProductPage() {
 
     const tabs = [
         ...(isKit ? [{ id: 'composition', label: 'Composição do Kit', icon: Box }] : []),
+        ...(!isKit ? [{ id: 'settings', label: 'Configurações', icon: Settings }] : []),
         ...(!isKit ? [{ id: 'pricing', label: 'Preços e Lucro', icon: DollarSign }] : []),
         ...(!isKit ? [{ id: 'images', label: 'Imagens', icon: ImageIcon }] : []),
-        { id: 'settings', label: 'Configurações', icon: Settings },
+        ...(isKit ? [{ id: 'settings', label: 'Configurações', icon: Settings }] : []),
     ];
 
     const handleAddTag = (e: React.KeyboardEvent) => {
@@ -232,26 +233,27 @@ export default function NewProductPage() {
             </div>
 
             {/* Top Section: Name, Status & Stock */}
-            <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm mb-8">
+            <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 mb-8">
                 <div className="flex flex-col xl:flex-row gap-6">
-                    {/* Name Field */}
-                    <div className="flex-1 min-w-[300px]">
-                        <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
-                            {isKit ? 'Nome do Kit' : 'Nome do Produto'}
-                        </label>
-                        <input
-                            type="text"
-                            value={product.name}
-                            onChange={(e) => setProduct({ ...product, name: e.target.value })}
-                            placeholder={isKit ? "Ex: Kit Cronograma Capilar Completo" : "Ex: Secador Lizze Extreme"}
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:border-black dark:focus:border-white transition-all"
-                        />
-                    </div>
+                    {isKit && (
+                        <div className="flex-1 min-w-[300px]">
+                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                Nome do Kit <span className="text-red-500 ml-1">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={product.name}
+                                onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                                placeholder="Ex: Kit Cronograma Capilar Completo"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:border-black dark:focus:border-white transition-all"
+                            />
+                        </div>
+                    )}
 
                     {/* Status Group */}
                     <div className="flex items-center gap-4">
                         <div className="w-40">
-                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Status</label>
+                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Status <span className="text-red-500 ml-1">*</span></label>
                             <Dropdown
                                 options={['Ativo', 'Rascunho', 'Esgotado']}
                                 value={product.status}
@@ -274,7 +276,7 @@ export default function NewProductPage() {
                     {/* Stock Group */}
                     <div className="flex items-center gap-4">
                         <div>
-                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">SKU</label>
+                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">SKU <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="text"
                                 value={product.sku}
@@ -283,7 +285,7 @@ export default function NewProductPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Estoque</label>
+                            <label className="block text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Estoque <span className="text-red-500 ml-1">*</span></label>
                             <input
                                 type="number"
                                 value={product.stock}
@@ -330,7 +332,7 @@ export default function NewProductPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
                         {/* Left: Product Selection */}
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-sm font-bold text-gray-900 dark:text-white">Adicionar Produtos ao Kit</h3>
                                     <div className="relative w-64">
@@ -384,7 +386,13 @@ export default function NewProductPage() {
                                         <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-white dark:bg-white/10 overflow-hidden">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                    {item.image ? (
+                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10">
+                                                            <Package className="w-4 h-4 text-gray-400 dark:text-gray-600" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
@@ -413,7 +421,7 @@ export default function NewProductPage() {
 
                         {/* Right: Selected Items */}
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                                 <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
                                     <span>Itens do Kit</span>
                                     <span className="text-xs font-normal text-gray-500">{product.kitItems.length} itens</span>
@@ -429,7 +437,13 @@ export default function NewProductPage() {
                                         {product.kitItems.map((item) => (
                                             <div key={item.productId} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/5">
                                                 <div className="relative w-12 h-12 rounded-lg bg-white dark:bg-white/10 overflow-hidden shrink-0 group">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                    {item.image ? (
+                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/5 dark:to-white/10">
+                                                            <Package className="w-5 h-5 text-gray-400 dark:text-gray-600" />
+                                                        </div>
+                                                    )}
                                                     {/* Brand Logo Overlay */}
                                                     <div className="absolute bottom-0 right-0 bg-white dark:bg-black p-0.5 rounded-tl-md">
                                                         <div className="w-4 h-4 rounded-full bg-gray-200 overflow-hidden">
@@ -477,11 +491,11 @@ export default function NewProductPage() {
 
                 {activeTab === 'pricing' && !isKit && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Definição de Preços</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Preço de Venda</label>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Preço de Venda <span className="text-red-500 ml-1">*</span></label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
                                         <input
@@ -519,7 +533,7 @@ export default function NewProductPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Custos Adicionais & Taxas</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div>
@@ -598,7 +612,7 @@ export default function NewProductPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Análise de Lucratividade Real</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
@@ -633,7 +647,7 @@ export default function NewProductPage() {
                 {activeTab === 'images' && !isKit && (
                     <div className="space-y-6 animate-in fade-in duration-300">
                         {/* Image Grid */}
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Galeria do Produto ({product.images.length})</h3>
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {/* Add Image Button */}
@@ -693,16 +707,16 @@ export default function NewProductPage() {
                 {activeTab === 'settings' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
                         {/* Basic Info - Moved from Details */}
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 <Package className="w-4 h-4" />
                                 Informações Básicas
                             </h3>
                             <div className="space-y-4">
-                                {/* Name field is moved to top for Kits, so hide here if Kit */}
+                                {/* Name field */}
                                 {!isKit && (
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nome do Produto</label>
+                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nome do Produto <span className="text-red-500 ml-1">*</span></label>
                                         <input
                                             type="text"
                                             value={product.name}
@@ -712,7 +726,7 @@ export default function NewProductPage() {
                                     </div>
                                 )}
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição</label>
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição <span className="text-red-500 ml-1">*</span></label>
                                     <textarea
                                         rows={6}
                                         value={product.description}
@@ -722,7 +736,7 @@ export default function NewProductPage() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Marca</label>
+                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Marca <span className="text-red-500 ml-1">*</span></label>
                                         <Dropdown
                                             options={['Lizze', 'Vyz', 'Dejavu']}
                                             value={product.brand}
@@ -730,7 +744,7 @@ export default function NewProductPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Categoria</label>
+                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Categoria <span className="text-red-500 ml-1">*</span></label>
                                         <Dropdown
                                             options={['Elétricos', 'Cabelos', 'Unhas', 'Pele', 'Móveis', 'Kits']}
                                             value={product.category}
@@ -738,7 +752,7 @@ export default function NewProductPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Subcategoria</label>
+                                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Subcategoria <span className="text-red-500 ml-1">*</span></label>
                                         <Dropdown
                                             options={subcategories[product.category] || []}
                                             value={product.subcategory || ''}
@@ -750,7 +764,7 @@ export default function NewProductPage() {
                         </div>
 
                         {/* SEO Settings */}
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 <Search className="w-4 h-4" />
                                 SEO (Otimização para Buscas)
@@ -794,7 +808,7 @@ export default function NewProductPage() {
                         </div>
 
                         {/* Shipping Settings */}
-                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm">
+                        <div className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5">
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 <Truck className="w-4 h-4" />
                                 Envio e Dimensões
