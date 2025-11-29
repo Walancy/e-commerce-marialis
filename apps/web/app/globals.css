@@ -34,6 +34,43 @@ body {
   color: var(--foreground);
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  /* gray-300 */
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+  /* gray-400 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Text Selection */
+::selection {
+  background-color: #fd7e14;
+  /* System Orange */
+  color: white;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

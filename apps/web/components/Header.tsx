@@ -276,7 +276,7 @@ export const Header = () => {
             </div>
 
             {/* Spacer for fixed header */}
-            <div className={`transition-all duration-300 ${!isScrolled ? 'h-[200px]' : (showFilters && shouldShowFilters) ? 'h-[160px]' : 'h-[80px]'}`}></div>
+            <div className={`transition-all duration-300 ${!isScrolled ? (shouldShowFilters ? 'h-[200px]' : 'h-[128px]') : (showFilters && shouldShowFilters) ? 'h-[160px]' : 'h-[80px]'}`}></div>
         </div>
     );
 };
