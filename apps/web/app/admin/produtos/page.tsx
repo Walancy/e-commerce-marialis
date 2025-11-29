@@ -7,6 +7,7 @@ import { Dropdown } from '../../../components/ui/Dropdown';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Switch } from '../../../components/ui/Switch';
+import { ConfirmModal } from '../../../components/ui/Modal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -56,6 +57,9 @@ export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<number | null>(null);
+    const [isBulkDelete, setIsBulkDelete] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
@@ -242,9 +246,19 @@ export default function ProductsPage() {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Tem certeza que deseja excluir este produto?')) {
-            setProducts(products.filter(p => p.id !== id));
-            setSelectedProductIds(selectedProductIds.filter(pid => pid !== id));
+        setProductToDelete(id);
+        setIsBulkDelete(false);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (isBulkDelete) {
+            setProducts(products.filter(p => !selectedProductIds.includes(p.id)));
+            setSelectedProductIds([]);
+        } else if (productToDelete) {
+            setProducts(products.filter(p => p.id !== productToDelete));
+            setSelectedProductIds(selectedProductIds.filter(pid => pid !== productToDelete));
+            setProductToDelete(null);
         }
     };
 
@@ -265,10 +279,8 @@ export default function ProductsPage() {
     };
 
     const handleBulkDelete = () => {
-        if (confirm(`Tem certeza que deseja excluir ${selectedProductIds.length} produtos?`)) {
-            setProducts(products.filter(p => !selectedProductIds.includes(p.id)));
-            setSelectedProductIds([]);
-        }
+        setIsBulkDelete(true);
+        setIsDeleteModalOpen(true);
     };
 
     const handleTogglePromotion = (id: number, active: boolean) => {
@@ -367,7 +379,20 @@ export default function ProductsPage() {
 
             {/* Filters Bar */}
             <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="relative w-full lg:flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar produtos..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
+                        />
+                    </div>
+
+                    <div className="h-px w-full lg:h-10 lg:w-px bg-gray-200 dark:bg-white/10" />
+
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="w-48">
                             <label className="block text-xs font-medium text-gray-500 mb-1">Marca</label>
@@ -396,17 +421,6 @@ export default function ProductsPage() {
                                 onChange={setFilterSubcategory}
                             />
                         </div>
-                    </div>
-
-                    <div className="relative w-full lg:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Buscar produtos..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
-                        />
                     </div>
                 </div>
             </div>
@@ -480,13 +494,11 @@ export default function ProductsPage() {
                                     )}
                                 </div>
 
-                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0">
-                                    {product.images && product.images.length > 0 && product.images[0] ? (
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/10 overflow-hidden relative shrink-0 flex items-center justify-center">
+                                    {product.images?.[0] ? (
                                         <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-white/5">
-                                            <ImageOff className="w-4 h-4 text-gray-400" />
-                                        </div>
+                                        <ImageIcon className="w-5 h-5 text-gray-300 dark:text-gray-600" />
                                     )}
                                     {product.isPromotionActive && (
                                         <div className="absolute top-0 right-0 bg-red-500 w-3 h-3 rounded-bl-lg" />
@@ -814,7 +826,6 @@ export default function ProductsPage() {
                                     </div>
                                 </div>
                             </form>
-
                             {/* Footer */}
                             <div className="px-6 py-4 border-t dark:border-white/10 bg-gray-50 dark:bg-white/5 flex justify-end gap-3">
                                 <Button
@@ -833,6 +844,20 @@ export default function ProductsPage() {
                     </div>
                 )
             }
-        </div >
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title={isBulkDelete ? "Excluir Produtos" : "Excluir Produto"}
+                description={isBulkDelete
+                    ? `Tem certeza que deseja excluir ${selectedProductIds.length} produtos selecionados? Esta ação não pode ser desfeita.`
+                    : "Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
+                }
+                confirmText="Excluir"
+                variant="danger"
+            />
+        </div>
     );
 }

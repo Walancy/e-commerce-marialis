@@ -1,28 +1,37 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Upload, X, Image as ImageIcon, Filter } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Dropdown } from '../../../components/ui/Dropdown';
+import { DataTable } from '../../../components/ui/DataTable';
+import { ConfirmModal } from '../../../components/ui/Modal';
+import { useRouter } from 'next/navigation';
 
 interface Brand {
     id: number;
     name: string;
     logo: string;
     productsCount: number;
+    totalSales: number;
+    revenue: number;
     status: 'Ativo' | 'Inativo';
 }
 
 export default function BrandsPage() {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('Todos');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [brandToDelete, setBrandToDelete] = useState<number | null>(null);
     const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
 
     const [brands, setBrands] = useState<Brand[]>([
-        { id: 1, name: "Lizze", logo: "https://placehold.co/100x100/png?text=Lizze", productsCount: 12, status: 'Ativo' },
-        { id: 2, name: "Vyz", logo: "https://placehold.co/100x100/png?text=Vyz", productsCount: 8, status: 'Ativo' },
-        { id: 3, name: "Dejavu", logo: "https://placehold.co/100x100/png?text=Dejavu", productsCount: 5, status: 'Ativo' },
-        { id: 4, name: "Nátylla", logo: "https://placehold.co/100x100/png?text=Natylla", productsCount: 15, status: 'Ativo' },
+        { id: 1, name: "Lizze", logo: "https://placehold.co/100x100/png?text=Lizze", productsCount: 12, totalSales: 1540, revenue: 450000.00, status: 'Ativo' },
+        { id: 2, name: "Vyz", logo: "https://placehold.co/100x100/png?text=Vyz", productsCount: 8, totalSales: 890, revenue: 120000.00, status: 'Ativo' },
+        { id: 3, name: "Dejavu", logo: "https://placehold.co/100x100/png?text=Dejavu", productsCount: 5, totalSales: 450, revenue: 85000.00, status: 'Ativo' },
+        { id: 4, name: "Nátylla", logo: "https://placehold.co/100x100/png?text=Natylla", productsCount: 15, totalSales: 2100, revenue: 680000.00, status: 'Ativo' },
     ]);
 
     const [formData, setFormData] = useState<Partial<Brand>>({
@@ -54,7 +63,9 @@ export default function BrandsPage() {
             const newBrand = {
                 ...formData,
                 id: Math.max(...brands.map(b => b.id), 0) + 1,
-                productsCount: 0
+                productsCount: 0,
+                totalSales: 0,
+                revenue: 0
             } as Brand;
             setBrands([...brands, newBrand]);
         }
@@ -62,14 +73,22 @@ export default function BrandsPage() {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Tem certeza que deseja excluir esta marca?')) {
-            setBrands(brands.filter(b => b.id !== id));
+        setBrandToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (brandToDelete) {
+            setBrands(brands.filter(b => b.id !== brandToDelete));
+            setBrandToDelete(null);
         }
     };
 
-    const filteredBrands = brands.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredBrands = brands.filter(b => {
+        const matchesSearch = b.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = filterStatus === 'Todos' || b.status === filterStatus;
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <div className="p-6 max-w-[1600px] mx-auto">
@@ -84,63 +103,133 @@ export default function BrandsPage() {
                 </Button>
             </div>
 
-            {/* Search Bar */}
+            {/* Filters Bar */}
             <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
-                <div className="relative w-full max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Buscar marcas..."
-                        className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
-                    />
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="relative w-full lg:flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Buscar marcas..."
+                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
+                        />
+                    </div>
+
+                    <div className="h-px w-full lg:h-10 lg:w-px bg-gray-200 dark:bg-white/10" />
+
+                    <div className="w-48">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                        <Dropdown
+                            options={['Todos', 'Ativo', 'Inativo']}
+                            value={filterStatus}
+                            onChange={setFilterStatus}
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Brands Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredBrands.map((brand) => (
-                    <div key={brand.id} className="bg-white dark:bg-[#121212] p-6 rounded-xl border dark:border-white/5 shadow-sm hover:shadow-md transition-all group relative">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="w-16 h-16 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center p-2 border dark:border-white/5">
-                                {brand.logo ? (
-                                    <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
-                                ) : (
-                                    <ImageIcon className="w-8 h-8 text-gray-300" />
-                                )}
+            {/* Brands Table */}
+            <DataTable<Brand>
+                data={filteredBrands}
+                keyField="id"
+                onRowClick={(brand) => router.push(`/admin/marcas/${brand.id}`)}
+                columns={[
+                    {
+                        header: 'Marca',
+                        accessorKey: 'name',
+                        sortable: true,
+                        cell: (brand) => (
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-white/5 flex items-center justify-center p-1 border dark:border-white/5">
+                                    {brand.logo ? (
+                                        <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <ImageIcon className="w-5 h-5 text-gray-300" />
+                                    )}
+                                </div>
+                                <span className="font-medium text-gray-900 dark:text-white">{brand.name}</span>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${brand.status === 'Ativo'
+                        )
+                    },
+                    {
+                        header: 'Produtos',
+                        accessorKey: 'productsCount',
+                        sortable: true,
+                        cell: (brand) => (
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-900 dark:text-white">{brand.productsCount}</span>
+                                <span className="text-xs text-gray-400">cadastrados</span>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Vendas',
+                        accessorKey: 'totalSales',
+                        sortable: true,
+                        cell: (brand) => (
+                            <div className="flex flex-col">
+                                <span className="font-bold text-gray-900 dark:text-white">{brand.totalSales}</span>
+                                <span className="text-xs text-gray-400">unidades</span>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Receita',
+                        accessorKey: 'revenue',
+                        sortable: true,
+                        cell: (brand) => (
+                            <div className="flex flex-col">
+                                <span className="font-bold text-green-600 dark:text-green-400">
+                                    {brand.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                </span>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Status',
+                        accessorKey: 'status',
+                        sortable: true,
+                        cell: (brand) => (
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${brand.status === 'Ativo'
                                 ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
                                 : 'bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-400'
                                 }`}>
                                 {brand.status}
                             </span>
-                        </div>
-
-                        <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">{brand.name}</h3>
-                            <p className="text-sm text-gray-500">{brand.productsCount} produtos cadastrados</p>
-                        </div>
-
-                        {/* Actions Overlay */}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => handleOpenModal(brand)}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-500 hover:text-black dark:hover:text-white transition-colors"
-                            >
-                                <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={() => handleDelete(brand.id)}
-                                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                        )
+                    },
+                    {
+                        header: 'Ações',
+                        className: 'text-right',
+                        cell: (brand) => (
+                            <div className="flex items-center justify-end gap-1">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenModal(brand);
+                                    }}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-black dark:text-gray-500 dark:hover:text-white transition-colors"
+                                    title="Editar"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(brand.id);
+                                    }}
+                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-400 hover:text-red-500 dark:text-gray-500 transition-colors"
+                                    title="Excluir"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )
+                    }
+                ]}
+            />
 
             {/* Modal */}
             {isModalOpen && (
@@ -223,6 +312,16 @@ export default function BrandsPage() {
                     </div>
                 </div>
             )}
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Excluir Marca"
+                description="Tem certeza que deseja excluir esta marca? Esta ação não pode ser desfeita e removerá a associação com todos os produtos."
+                confirmText="Excluir"
+                variant="danger"
+            />
         </div>
     );
 }
