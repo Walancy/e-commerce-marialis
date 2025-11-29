@@ -35,13 +35,13 @@ export const HeroCarousel = () => {
     const next = () => setCurrent((curr) => (curr === slides.length - 1 ? 0 : curr + 1));
 
     return (
-        <div className="relative w-full h-auto min-h-[600px] md:min-h-[500px] overflow-hidden group">
+        <div className="relative w-full h-auto min-h-[300px] md:min-h-[300px] overflow-hidden group">
             <div
                 className="flex transition-transform duration-700 ease-out h-full"
                 style={{ transform: `translateX(-${current * 100}%)` }}
             >
                 {slides.map((slide) => (
-                    <div key={slide.id} className="w-full h-full flex-shrink-0 relative min-h-[600px] md:min-h-[500px]">
+                    <div key={slide.id} className="w-full h-full flex-shrink-0 relative min-h-[300px] md:min-h-[300px]">
                         {slide.type === 'promo' ? (
                             // Black Friday Slide Layout
                             <div className="w-full h-full bg-[#ff0040] flex items-center justify-center relative overflow-hidden pb-16 md:pb-0">
