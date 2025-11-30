@@ -163,7 +163,11 @@ export const AdminSidebar = ({ isCollapsed, toggleSidebar }: SidebarProps) => {
                 </div>
 
                 {/* User Profile */}
-                <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''} p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer`}>
+                {/* User Profile */}
+                <Link
+                    href="/admin/perfil"
+                    className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''} p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer`}
+                >
                     <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                         <img src="https://github.com/shadcn.png" alt="User" className="w-full h-full object-cover" />
                     </div>
@@ -178,7 +182,7 @@ export const AdminSidebar = ({ isCollapsed, toggleSidebar }: SidebarProps) => {
                     {!isCollapsed && (
                         <LogOut className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors" />
                     )}
-                </div>
+                </Link>
             </div>
         </aside>
     );
