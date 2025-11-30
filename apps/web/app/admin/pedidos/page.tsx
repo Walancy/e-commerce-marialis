@@ -1,104 +1,105 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Eye, Filter, X, Clock, CheckCircle, Truck, AlertCircle, Calendar, CreditCard, User, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+    Eye,
+    Filter,
+    X,
+    Clock,
+    CheckCircle,
+    Truck,
+    AlertCircle,
+    Calendar,
+    CreditCard,
+    User,
+    MapPin,
+    DollarSign,
+    ShoppingBag,
+    ArrowUpRight,
+    ArrowDownRight,
+    MoreHorizontal
+} from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { SearchInput } from '../../../components/ui/SearchInput';
 import { Dropdown } from '../../../components/ui/Dropdown';
-
-interface OrderItem {
-    id: number;
-    productName: string;
-    quantity: number;
-    price: number;
-    image: string;
-}
+import { DataTable } from '../../../components/ui/DataTable';
 
 interface Order {
     id: string;
     customer: {
         name: string;
         email: string;
-        phone: string;
-        address: string;
     };
     date: string;
     status: 'Pendente' | 'Processando' | 'Enviado' | 'Entregue' | 'Cancelado';
     total: number;
     paymentMethod: string;
-    items: OrderItem[];
+    itemsCount: number;
 }
 
 export default function OrdersPage() {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState<string>('Todos');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     // Mock Data
     const [orders, setOrders] = useState<Order[]>([
         {
-            id: "ORD-001",
-            customer: {
-                name: "Maria Silva",
-                email: "maria.silva@email.com",
-                phone: "(11) 99999-9999",
-                address: "Rua das Flores, 123 - São Paulo, SP"
-            },
+            id: "ORD-001-2024",
+            customer: { name: "Maria Silva", email: "maria.silva@email.com" },
             date: "2024-11-28",
             status: "Pendente",
             total: 499.00,
             paymentMethod: "Cartão de Crédito",
-            items: [
-                { id: 1, productName: "Prancha Lizze Extreme", quantity: 1, price: 499.00, image: "/product-flat-iron.png" }
-            ]
+            itemsCount: 1
         },
         {
-            id: "ORD-002",
-            customer: {
-                name: "João Santos",
-                email: "joao@email.com",
-                phone: "(21) 98888-8888",
-                address: "Av. Atlântica, 450 - Rio de Janeiro, RJ"
-            },
+            id: "ORD-002-2024",
+            customer: { name: "João Santos", email: "joao@email.com" },
             date: "2024-11-27",
             status: "Enviado",
             total: 299.80,
             paymentMethod: "PIX",
-            items: [
-                { id: 2, productName: "Kit Repair Vyz", quantity: 2, price: 149.90, image: "/product-shampoo.png" }
-            ]
+            itemsCount: 2
         },
         {
-            id: "ORD-003",
-            customer: {
-                name: "Ana Oliveira",
-                email: "ana@email.com",
-                phone: "(31) 97777-7777",
-                address: "Rua da Bahia, 1000 - Belo Horizonte, MG"
-            },
+            id: "ORD-003-2024",
+            customer: { name: "Ana Oliveira", email: "ana@email.com" },
             date: "2024-11-26",
             status: "Entregue",
             total: 1250.00,
             paymentMethod: "Boleto",
-            items: [
-                { id: 1, productName: "Prancha Lizze Extreme", quantity: 2, price: 499.00, image: "/product-flat-iron.png" },
-                { id: 3, productName: "Secador Profissional", quantity: 1, price: 252.00, image: "/product-dryer.png" }
-            ]
+            itemsCount: 3
+        },
+        {
+            id: "ORD-004-2024",
+            customer: { name: "Pedro Costa", email: "pedro@email.com" },
+            date: "2024-11-25",
+            status: "Processando",
+            total: 89.90,
+            paymentMethod: "PIX",
+            itemsCount: 1
+        },
+        {
+            id: "ORD-005-2024",
+            customer: { name: "Carla Souza", email: "carla@email.com" },
+            date: "2024-11-24",
+            status: "Cancelado",
+            total: 450.00,
+            paymentMethod: "Cartão de Crédito",
+            itemsCount: 1
         }
     ]);
 
-    const handleOpenModal = (order: Order) => {
-        setViewingOrder(order);
-        setIsModalOpen(true);
-    };
-
-    const handleStatusChange = (newStatus: string) => {
-        if (viewingOrder) {
-            setOrders(orders.map(o => o.id === viewingOrder.id ? { ...o, status: newStatus as any } : o));
-            setViewingOrder({ ...viewingOrder, status: newStatus as any });
-        }
-    };
+    const filteredOrders = orders.filter(order => {
+        const matchesSearch =
+            order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.customer.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = selectedStatus === 'Todos' || order.status === selectedStatus;
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -122,208 +123,200 @@ export default function OrdersPage() {
         }
     };
 
-    const filteredOrders = orders.filter(order => {
-        const matchesSearch =
-            order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.customer.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = selectedStatus === 'Todos' || order.status === selectedStatus;
-        return matchesSearch && matchesStatus;
-    });
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filteredOrders.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filteredOrders.map(o => o.id));
+        }
+    };
+
+    const toggleSelectOne = (id: string | number) => {
+        const strId = String(id);
+        if (selectedIds.includes(strId)) {
+            setSelectedIds(selectedIds.filter(sid => sid !== strId));
+        } else {
+            setSelectedIds([...selectedIds, strId]);
+        }
+    };
 
     return (
-        <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+        <div className="p-6 max-w-[1600px] mx-auto">
+            <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Pedidos</h1>
-                    <p className="text-xs text-gray-500">Gerencie as vendas da loja</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pedidos</h1>
+                    <p className="text-sm text-gray-500 mt-1">Gerencie e acompanhe todas as vendas</p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline">
+                        <Filter className="w-4 h-4 mr-2" />
+                        Filtros Avançados
+                    </Button>
+                    <Button>
+                        Exportar Relatório
+                    </Button>
+                </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Vendas Hoje</span>
+                        <span className="p-1.5 bg-green-100 dark:bg-green-500/10 rounded-lg text-green-600 dark:text-green-400">
+                            <DollarSign className="w-4 h-4" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">R$ 1.250,00</h3>
+                        <span className="text-xs font-medium text-green-600 flex items-center">
+                            <ArrowUpRight className="w-3 h-3 mr-0.5" />
+                            +12%
+                        </span>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Pedidos Pendentes</span>
+                        <span className="p-1.5 bg-yellow-100 dark:bg-yellow-500/10 rounded-lg text-yellow-600 dark:text-yellow-400">
+                            <Clock className="w-4 h-4" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">12</h3>
+                        <span className="text-xs font-medium text-gray-500">Aguardando envio</span>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Ticket Médio</span>
+                        <span className="p-1.5 bg-blue-100 dark:bg-blue-500/10 rounded-lg text-blue-600 dark:text-blue-400">
+                            <ShoppingBag className="w-4 h-4" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">R$ 345,00</h3>
+                        <span className="text-xs font-medium text-green-600 flex items-center">
+                            <ArrowUpRight className="w-3 h-3 mr-0.5" />
+                            +5%
+                        </span>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Cancelamentos</span>
+                        <span className="p-1.5 bg-red-100 dark:bg-red-500/10 rounded-lg text-red-600 dark:text-red-400">
+                            <AlertCircle className="w-4 h-4" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">2</h3>
+                        <span className="text-xs font-medium text-red-600 flex items-center">
+                            <ArrowDownRight className="w-3 h-3 mr-0.5" />
+                            +1%
+                        </span>
+                    </div>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3 mb-4">
-                <div className="w-72">
-                    <SearchInput
-                        placeholder="Buscar por ID ou cliente..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="w-48">
-                    <Dropdown
-                        options={['Todos', 'Pendente', 'Processando', 'Enviado', 'Entregue', 'Cancelado']}
-                        value={selectedStatus}
-                        onChange={setSelectedStatus}
-                    />
+            <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="relative flex-1">
+                        <SearchInput
+                            placeholder="Buscar por ID, cliente ou email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="h-px w-full lg:h-10 lg:w-px bg-gray-200 dark:bg-white/10" />
+                    <div className="w-48">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                        <Dropdown
+                            options={['Todos', 'Pendente', 'Processando', 'Enviado', 'Entregue', 'Cancelado']}
+                            value={selectedStatus}
+                            onChange={setSelectedStatus}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Orders Table */}
-            <div className="bg-white dark:bg-[#121212] rounded-xl border dark:border-white/5 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                        <thead className="bg-gray-50 dark:bg-white/5 border-b dark:border-white/5">
-                            <tr>
-                                <th className="px-4 py-3 font-medium text-gray-500">ID Pedido</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Cliente</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Data</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Status</th>
-                                <th className="px-4 py-3 font-medium text-gray-500">Total</th>
-                                <th className="px-4 py-3 font-medium text-gray-500 text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y dark:divide-white/5">
-                            {filteredOrders.map((order) => {
-                                const StatusIcon = getStatusIcon(order.status);
-                                return (
-                                    <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{order.id}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{order.customer.name}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{new Date(order.date).toLocaleDateString('pt-BR')}</td>
-                                        <td className="px-4 py-3">
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${getStatusColor(order.status)}`}>
-                                                <StatusIcon className="w-3 h-3" />
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                            R$ {order.total.toFixed(2)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Button size="sm" variant="ghost" onClick={() => handleOpenModal(order)}>
-                                                <Eye className="w-4 h-4 mr-1" />
-                                                Detalhes
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Order Details Modal */}
-            {isModalOpen && viewingOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-[#121212] w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b dark:border-white/10 flex items-center justify-between bg-gray-50 dark:bg-white/5">
+            <DataTable
+                data={filteredOrders}
+                selectedIds={selectedIds}
+                onSelectAll={toggleSelectAll}
+                onSelectOne={toggleSelectOne}
+                onRowClick={(order) => router.push(`/admin/pedidos/${order.id}`)}
+                columns={[
+                    {
+                        header: 'Pedido',
+                        accessorKey: 'id',
+                        cell: (order) => (
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    Pedido #{viewingOrder.id}
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${getStatusColor(viewingOrder.status)}`}>
-                                        {viewingOrder.status}
-                                    </span>
-                                </h2>
-                                <p className="text-xs text-gray-500 mt-1">Realizado em {new Date(viewingOrder.date).toLocaleDateString('pt-BR')}</p>
+                                <p className="font-bold text-gray-900 dark:text-white font-mono">{order.id}</p>
+                                <p className="text-xs text-gray-500">{new Date(order.date).toLocaleDateString('pt-BR')}</p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors">
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                {/* Customer Info */}
-                                <div className="space-y-3">
-                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                        <User className="w-4 h-4" />
-                                        Dados do Cliente
-                                    </h3>
-                                    <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl text-sm space-y-2">
-                                        <p className="font-medium text-gray-900 dark:text-white">{viewingOrder.customer.name}</p>
-                                        <p className="text-gray-500">{viewingOrder.customer.email}</p>
-                                        <p className="text-gray-500">{viewingOrder.customer.phone}</p>
-                                    </div>
+                        )
+                    },
+                    {
+                        header: 'Cliente',
+                        accessorKey: 'customer',
+                        cell: (order) => (
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xs">
+                                    {order.customer.name.charAt(0)}
                                 </div>
-
-                                {/* Shipping Info */}
-                                <div className="space-y-3">
-                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                        <MapPin className="w-4 h-4" />
-                                        Endereço de Entrega
-                                    </h3>
-                                    <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl text-sm">
-                                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                            {viewingOrder.customer.address}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p className="font-medium text-gray-900 dark:text-white">{order.customer.name}</p>
+                                    <p className="text-xs text-gray-500">{order.customer.email}</p>
                                 </div>
                             </div>
-
-                            {/* Order Items */}
-                            <div className="mb-8">
-                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Itens do Pedido</h3>
-                                <div className="border dark:border-white/10 rounded-xl overflow-hidden">
-                                    <table className="w-full text-left text-sm">
-                                        <thead className="bg-gray-50 dark:bg-white/5 text-xs text-gray-500">
-                                            <tr>
-                                                <th className="px-4 py-2">Produto</th>
-                                                <th className="px-4 py-2 text-center">Qtd</th>
-                                                <th className="px-4 py-2 text-right">Preço</th>
-                                                <th className="px-4 py-2 text-right">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y dark:divide-white/5">
-                                            {viewingOrder.items.map((item) => (
-                                                <tr key={item.id}>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded bg-gray-100 dark:bg-white/5 overflow-hidden">
-                                                                <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
-                                                            </div>
-                                                            <span className="font-medium text-gray-900 dark:text-white">{item.productName}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{item.quantity}</td>
-                                                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400">R$ {item.price.toFixed(2)}</td>
-                                                    <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">R$ {(item.price * item.quantity).toFixed(2)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                        <tfoot className="bg-gray-50 dark:bg-white/5">
-                                            <tr>
-                                                <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">Total do Pedido</td>
-                                                <td className="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">R$ {viewingOrder.total.toFixed(2)}</td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
+                        )
+                    },
+                    {
+                        header: 'Status',
+                        accessorKey: 'status',
+                        cell: (order) => {
+                            const StatusIcon = getStatusIcon(order.status);
+                            return (
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${getStatusColor(order.status)}`}>
+                                    <StatusIcon className="w-3 h-3" />
+                                    {order.status}
+                                </span>
+                            );
+                        }
+                    },
+                    {
+                        header: 'Pagamento',
+                        accessorKey: 'paymentMethod',
+                        cell: (order) => (
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{order.paymentMethod}</span>
+                        )
+                    },
+                    {
+                        header: 'Total',
+                        accessorKey: 'total',
+                        cell: (order) => (
+                            <div>
+                                <p className="font-bold text-gray-900 dark:text-white">R$ {order.total.toFixed(2)}</p>
+                                <p className="text-xs text-gray-500">{order.itemsCount} itens</p>
                             </div>
-
-                            {/* Payment & Actions */}
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border dark:border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-white dark:bg-white/10 rounded-lg">
-                                        <CreditCard className="w-5 h-5 text-gray-900 dark:text-white" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Método de Pagamento</p>
-                                        <p className="text-sm font-bold text-gray-900 dark:text-white">{viewingOrder.paymentMethod}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 w-full md:w-auto">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Atualizar Status:</span>
-                                    <div className="w-48">
-                                        <Dropdown
-                                            options={['Pendente', 'Processando', 'Enviado', 'Entregue', 'Cancelado']}
-                                            value={viewingOrder.status}
-                                            onChange={handleStatusChange}
-                                        />
-                                    </div>
-                                </div>
+                        )
+                    },
+                    {
+                        header: '',
+                        cell: (order) => (
+                            <div className="flex justify-end" onClick={e => e.stopPropagation()}>
+                                <Button size="sm" variant="ghost" onClick={() => router.push(`/admin/pedidos/${order.id}`)}>
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Detalhes
+                                </Button>
                             </div>
-                        </div>
-
-                        <div className="px-6 py-4 border-t dark:border-white/10 bg-gray-50 dark:bg-white/5 flex justify-end">
-                            <Button onClick={() => setIsModalOpen(false)}>
-                                Fechar
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        )
+                    }
+                ]}
+            />
         </div>
     );
 }

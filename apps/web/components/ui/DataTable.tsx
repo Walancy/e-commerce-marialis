@@ -16,10 +16,10 @@ interface DataTableProps<T> {
     data: T[];
     columns: Column<T>[];
     onRowClick?: (item: T) => void;
-    selectedIds?: number[];
+    selectedIds?: (number | string)[];
     onSelectAll?: () => void;
-    onSelectOne?: (id: number) => void;
-    keyField: keyof T;
+    onSelectOne?: (id: number | string) => void;
+    keyField?: keyof T;
 }
 
 export function DataTable<T>({
@@ -91,8 +91,9 @@ export function DataTable<T>({
                         </tr>
                     </thead>
                     <tbody className="divide-y dark:divide-white/5">
-                        {sortedData.map((item) => {
-                            const id = item[keyField] as number;
+                        {sortedData.map((item, idx) => {
+                            // Use keyField if provided, otherwise fallback to 'id' if it exists, or index
+                            const id = keyField ? item[keyField] as (string | number) : (item as any).id || idx;
                             const isSelected = selectedIds.includes(id);
                             return (
                                 <tr
