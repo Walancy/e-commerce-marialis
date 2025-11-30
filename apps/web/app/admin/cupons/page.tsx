@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, Tag, Copy, Calendar, X, Save, Trash2, Edit } from 'lucide-react';
+import { Plus, Tag, Copy, Calendar, X, Save, Trash2, Edit, Search, Filter, MoreHorizontal, Check, FileSpreadsheet, AlertTriangle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Dropdown } from '../../../components/ui/Dropdown';
+import { DataTable } from '../../../components/ui/DataTable';
+import { ConfirmModal } from '../../../components/ui/Modal';
 
 interface Coupon {
     id: number;
@@ -16,13 +18,27 @@ interface Coupon {
 }
 
 export default function CouponsPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+    // State
+    const [activeTab, setActiveTab] = useState('todos');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterType, setFilterType] = useState('Todos');
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+    // Modals
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+    const [couponToDelete, setCouponToDelete] = useState<number | null>(null);
+    const [isBulkDelete, setIsBulkDelete] = useState(false);
+    const [showStatusMenu, setShowStatusMenu] = useState(false);
+
+    // Data
     const [coupons, setCoupons] = useState<Coupon[]>([
         { id: 1, code: "BEMVINDO10", discount: "10%", type: "Porcentagem", uses: 145, status: "Ativo", expiry: "2024-12-31" },
         { id: 2, code: "FRETEGRATIS", discount: "Frete", type: "Frete Grátis", uses: 89, status: "Ativo", expiry: "2024-11-30" },
         { id: 3, code: "BLACKFRIDAY", discount: "50%", type: "Porcentagem", uses: 0, status: "Agendado", expiry: "2024-11-29" },
+        { id: 4, code: "NATAL2024", discount: "R$ 50,00", type: "Valor Fixo", uses: 12, status: "Ativo", expiry: "2024-12-25" },
+        { id: 5, code: "VERAO2024", discount: "20%", type: "Porcentagem", uses: 340, status: "Expirado", expiry: "2024-03-20" },
     ]);
 
     const [formData, setFormData] = useState<Partial<Coupon>>({
@@ -33,6 +49,20 @@ export default function CouponsPage() {
         expiry: ''
     });
 
+    // Computed
+    const filteredCoupons = coupons.filter(coupon => {
+        const matchesSearch = coupon.code.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTab =
+            activeTab === 'todos' ? true :
+                activeTab === 'ativos' ? coupon.status === 'Ativo' :
+                    activeTab === 'agendados' ? coupon.status === 'Agendado' :
+                        activeTab === 'expirados' ? coupon.status === 'Expirado' : true;
+        const matchesType = filterType === 'Todos' ? true : coupon.type === filterType;
+
+        return matchesSearch && matchesTab && matchesType;
+    });
+
+    // Handlers
     const handleOpenModal = (coupon?: Coupon) => {
         if (coupon) {
             setEditingCoupon(coupon);
@@ -52,7 +82,6 @@ export default function CouponsPage() {
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (editingCoupon) {
             setCoupons(coupons.map(c => c.id === editingCoupon.id ? { ...c, ...formData } as Coupon : c));
         } else {
@@ -66,9 +95,55 @@ export default function CouponsPage() {
         setIsModalOpen(false);
     };
 
-    const handleDelete = (id: number) => {
-        if (confirm('Tem certeza que deseja excluir este cupom?')) {
-            setCoupons(coupons.filter(c => c.id !== id));
+    const handleDeleteClick = (id: number) => {
+        setCouponToDelete(id);
+        setIsBulkDelete(false);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleBulkDeleteClick = () => {
+        setIsBulkDelete(true);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleBulkStatusChange = (newStatus: 'Ativo' | 'Agendado' | 'Expirado') => {
+        setCoupons(coupons.map(c => selectedIds.includes(c.id) ? { ...c, status: newStatus } : c));
+        setShowStatusMenu(false);
+        setSelectedIds([]);
+    };
+
+    const confirmDelete = () => {
+        if (isBulkDelete) {
+            setCoupons(coupons.filter(c => !selectedIds.includes(c.id)));
+            setSelectedIds([]);
+        } else if (couponToDelete) {
+            setCoupons(coupons.filter(c => c.id !== couponToDelete));
+        }
+        setIsDeleteModalOpen(false);
+        setCouponToDelete(null);
+    };
+
+    const toggleSelectAll = () => {
+        const allFilteredSelected = filteredCoupons.length > 0 && filteredCoupons.every(c => selectedIds.includes(c.id));
+
+        if (allFilteredSelected) {
+            // Remove filtered coupons from selection
+            setSelectedIds(selectedIds.filter(id => !filteredCoupons.find(c => c.id === id)));
+        } else {
+            // Add filtered coupons to selection (avoid duplicates)
+            const newIds = [...selectedIds];
+            filteredCoupons.forEach(c => {
+                if (!newIds.includes(c.id)) newIds.push(c.id);
+            });
+            setSelectedIds(newIds);
+        }
+    };
+
+    const toggleSelectOne = (id: number) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(sid => sid !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
         }
     };
 
@@ -78,83 +153,197 @@ export default function CouponsPage() {
         return `${day}/${month}/${year}`;
     };
 
+    const tabs = [
+        { id: 'todos', label: 'Todos' },
+        { id: 'ativos', label: 'Ativos' },
+        { id: 'agendados', label: 'Agendados' },
+        { id: 'expirados', label: 'Expirados' },
+    ];
+
     return (
-        <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+        <div className="p-6 max-w-[1600px] mx-auto">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Cupons</h1>
-                    <p className="text-xs text-gray-500">Gerencie descontos</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Cupons de Desconto</h1>
+                    <p className="text-sm text-gray-500 mt-1">Gerencie suas campanhas promocionais</p>
                 </div>
-                <Button onClick={() => handleOpenModal()}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar Cupom
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline">
+                        <FileSpreadsheet className="w-4 h-4 mr-2" />
+                        Exportar
+                    </Button>
+                    <Button onClick={() => handleOpenModal()}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Criar Cupom
+                    </Button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {coupons.map((coupon) => (
-                    <div key={coupon.id} className="bg-white dark:bg-[#121212] p-4 rounded-xl shadow-sm border dark:border-white/5 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-2 opacity-5">
-                            <Tag className="w-16 h-16 transform rotate-12" />
-                        </div>
-
-                        <div className="relative z-10">
-                            <div className="flex justify-between items-start mb-3">
-                                <div className="bg-gray-100 dark:bg-white/5 px-2 py-1 rounded font-mono font-bold text-sm tracking-wider text-gray-900 dark:text-white flex items-center gap-2">
-                                    {coupon.code}
-                                    <button className="text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-                                        <Copy className="w-3 h-3" />
-                                    </button>
-                                </div>
-                                <div className="flex gap-2">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${coupon.status === 'Ativo' ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' :
-                                            coupon.status === 'Agendado' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
-                                                'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
-                                        }`}>
-                                        {coupon.status}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{coupon.discount}</span>
-                                    <span className="text-xs text-gray-500">OFF</span>
-                                </div>
-                                <p className="text-xs text-gray-500">{coupon.type}</p>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[10px] text-gray-500 border-t dark:border-white/5 pt-3">
-                                <div className="flex items-center gap-1">
-                                    <Tag className="w-3 h-3" />
-                                    {coupon.uses} usos
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    Expira em {formatDate(coupon.expiry)}
-                                </div>
-                            </div>
-
-                            {/* Actions Overlay */}
-                            <div className="absolute inset-0 bg-white/90 dark:bg-[#121212]/90 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button size="sm" variant="secondary" onClick={() => handleOpenModal(coupon)}>
-                                    <Edit className="w-4 h-4 mr-1" />
-                                    Editar
-                                </Button>
-                                <Button size="sm" variant="danger" onClick={() => handleDelete(coupon.id)}>
-                                    <Trash2 className="w-4 h-4 mr-1" />
-                                    Excluir
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+            {/* Tabs */}
+            <div className="flex items-center gap-1 border-b dark:border-white/5 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                                ? 'border-black dark:border-white text-black dark:text-white'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                            }`}
+                    >
+                        {tab.label}
+                    </button>
                 ))}
             </div>
 
-            {/* Modal */}
+            {/* Filters & Actions */}
+            <div className="mb-6 bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por código..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border dark:border-white/10 bg-gray-50 dark:bg-white/5 focus:ring-2 focus:ring-black dark:focus:ring-white outline-none transition-all"
+                        />
+                    </div>
+                    <div className="h-px w-full lg:h-10 lg:w-px bg-gray-200 dark:bg-white/10" />
+                    <div className="w-48">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
+                        <Dropdown
+                            options={['Todos', 'Porcentagem', 'Valor Fixo', 'Frete Grátis']}
+                            value={filterType}
+                            onChange={setFilterType}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Bulk Actions Bar */}
+            {selectedIds.length > 0 && (
+                <div className="mb-6 p-4 bg-black dark:bg-white text-white dark:text-black rounded-xl flex items-center justify-between animate-in fade-in slide-in-from-top-2 shadow-lg">
+                    <div className="flex items-center gap-4">
+                        <span className="font-medium text-sm">{selectedIds.length} selecionados</span>
+                        <div className="h-4 w-px bg-white/20 dark:bg-black/20" />
+                        <div className="relative">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="!text-white dark:!text-black hover:bg-white/10 dark:hover:bg-black/10"
+                                onClick={() => setShowStatusMenu(!showStatusMenu)}
+                            >
+                                Alterar Status
+                            </Button>
+
+                            {showStatusMenu && (
+                                <div className="absolute top-full left-0 mt-2 w-40 bg-white dark:bg-[#1E1E1E] rounded-lg shadow-xl border dark:border-white/10 overflow-hidden z-20 py-1">
+                                    {['Ativo', 'Agendado', 'Expirado'].map((status) => (
+                                        <button
+                                            key={status}
+                                            onClick={() => handleBulkStatusChange(status as any)}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        >
+                                            {status}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="!text-red-400 hover:!text-red-300 hover:bg-white/10 dark:hover:bg-black/10"
+                        onClick={handleBulkDeleteClick}
+                    >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir Selecionados
+                    </Button>
+                </div>
+            )}
+
+            {/* Table */}
+            <DataTable
+                data={filteredCoupons}
+                selectedIds={selectedIds}
+                onSelectAll={toggleSelectAll}
+                onSelectOne={toggleSelectOne}
+                onRowClick={(coupon) => handleOpenModal(coupon)}
+                columns={[
+                    {
+                        header: 'Código',
+                        accessorKey: 'code',
+                        cell: (coupon) => (
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500">
+                                    <Tag className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-gray-900 dark:text-white font-mono">{coupon.code}</p>
+                                    <p className="text-xs text-gray-500">{coupon.type}</p>
+                                </div>
+                            </div>
+                        )
+                    },
+                    {
+                        header: 'Desconto',
+                        accessorKey: 'discount',
+                        cell: (coupon) => (
+                            <span className="font-medium text-gray-900 dark:text-white">{coupon.discount}</span>
+                        )
+                    },
+                    {
+                        header: 'Usos',
+                        accessorKey: 'uses',
+                        cell: (coupon) => (
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{coupon.uses} vezes</span>
+                        )
+                    },
+                    {
+                        header: 'Status',
+                        accessorKey: 'status',
+                        cell: (coupon) => (
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${coupon.status === 'Ativo' ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400' :
+                                    coupon.status === 'Agendado' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                                        'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-400'
+                                }`}>
+                                {coupon.status}
+                            </span>
+                        )
+                    },
+                    {
+                        header: 'Expira em',
+                        accessorKey: 'expiry',
+                        cell: (coupon) => (
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                <Calendar className="w-4 h-4" />
+                                {formatDate(coupon.expiry)}
+                            </div>
+                        )
+                    },
+                    {
+                        header: '',
+                        accessorKey: 'actions',
+                        cell: (coupon) => (
+                            <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
+                                <Button size="sm" variant="ghost" onClick={() => handleOpenModal(coupon)}>
+                                    <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteClick(coupon.id)}>
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        )
+                    }
+                ]}
+            />
+
+            {/* Create/Edit Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-[#121212] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-[#121212] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
                         <div className="px-6 py-4 border-b dark:border-white/10 flex items-center justify-between bg-gray-50 dark:bg-white/5">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                                 {editingCoupon ? 'Editar Cupom' : 'Novo Cupom'}
@@ -182,7 +371,7 @@ export default function CouponsPage() {
                                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Desconto</label>
                                     <Dropdown
                                         options={['Porcentagem', 'Valor Fixo', 'Frete Grátis']}
-                                        value={formData.type}
+                                        value={formData.type || 'Porcentagem'}
                                         onChange={(val) => setFormData({ ...formData, type: val as any })}
                                     />
                                 </div>
@@ -205,7 +394,7 @@ export default function CouponsPage() {
                                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                                     <Dropdown
                                         options={['Ativo', 'Agendado', 'Expirado']}
-                                        value={formData.status}
+                                        value={formData.status || 'Ativo'}
                                         onChange={(val) => setFormData({ ...formData, status: val as any })}
                                     />
                                 </div>
@@ -233,6 +422,20 @@ export default function CouponsPage() {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title={isBulkDelete ? "Excluir Cupons" : "Excluir Cupom"}
+                description={isBulkDelete
+                    ? `Tem certeza que deseja excluir ${selectedIds.length} cupons selecionados? Esta ação não pode ser desfeita.`
+                    : "Tem certeza que deseja excluir este cupom? Esta ação não pode ser desfeita."
+                }
+                confirmText="Excluir"
+                variant="danger"
+            />
         </div>
     );
 }
