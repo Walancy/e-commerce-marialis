@@ -262,11 +262,12 @@ export default function ProductsPage() {
         }
     };
 
-    const toggleSelectProduct = (id: number) => {
-        if (selectedProductIds.includes(id)) {
-            setSelectedProductIds(selectedProductIds.filter(pid => pid !== id));
+    const toggleSelectProduct = (id: string | number) => {
+        const numId = Number(id);
+        if (selectedProductIds.includes(numId)) {
+            setSelectedProductIds(selectedProductIds.filter(pid => pid !== numId));
         } else {
-            setSelectedProductIds([...selectedProductIds, id]);
+            setSelectedProductIds([...selectedProductIds, numId]);
         }
     };
 

@@ -1,11 +1,24 @@
 "use client";
 
 import React from 'react';
-import { DollarSign, ShoppingBag, Users, TrendingUp, ArrowUpRight, ArrowDownRight, MoreHorizontal, Calendar, CreditCard } from 'lucide-react';
+import {
+    DollarSign,
+    ShoppingBag,
+    Users,
+    TrendingUp,
+    ArrowUpRight,
+    ArrowDownRight,
+    Calendar,
+    CreditCard,
+    Package,
+    FileText
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/Button';
-import { Dropdown } from '../../components/ui/Dropdown';
 
 export default function AdminDashboard() {
+    const router = useRouter();
+
     const stats = [
         {
             title: "Vendas Totais",
@@ -14,8 +27,7 @@ export default function AdminDashboard() {
             trend: "up",
             icon: DollarSign,
             gradient: "from-green-500/10 to-green-500/5",
-            iconColor: "text-green-600 dark:text-green-400",
-            chartData: [40, 35, 55, 45, 60, 75, 65]
+            iconColor: "text-green-600 dark:text-green-400"
         },
         {
             title: "Pedidos",
@@ -24,8 +36,7 @@ export default function AdminDashboard() {
             trend: "up",
             icon: ShoppingBag,
             gradient: "from-blue-500/10 to-blue-500/5",
-            iconColor: "text-blue-600 dark:text-blue-400",
-            chartData: [20, 25, 35, 30, 45, 40, 50]
+            iconColor: "text-blue-600 dark:text-blue-400"
         },
         {
             title: "Novos Clientes",
@@ -34,8 +45,7 @@ export default function AdminDashboard() {
             trend: "down",
             icon: Users,
             gradient: "from-purple-500/10 to-purple-500/5",
-            iconColor: "text-purple-600 dark:text-purple-400",
-            chartData: [60, 55, 45, 50, 40, 35, 30]
+            iconColor: "text-purple-600 dark:text-purple-400"
         },
         {
             title: "Taxa de Conversão",
@@ -44,35 +54,9 @@ export default function AdminDashboard() {
             trend: "up",
             icon: TrendingUp,
             gradient: "from-orange-500/10 to-orange-500/5",
-            iconColor: "text-orange-600 dark:text-orange-400",
-            chartData: [10, 15, 20, 25, 22, 30, 32]
+            iconColor: "text-orange-600 dark:text-orange-400"
         }
     ];
-
-    // Mock Chart Component (SVG)
-    const MiniChart = ({ data, color }: { data: number[], color: string }) => {
-        const max = Math.max(...data);
-        const points = data.map((val, i) => `${(i / (data.length - 1)) * 100},${100 - (val / max) * 100}`).join(' ');
-
-        return (
-            <svg className="w-full h-12 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <path
-                    d={`M 0 100 L ${points} L 100 100 Z`}
-                    fill="currentColor"
-                    className={`${color.replace('text-', 'text-').replace('600', '100').replace('400', '500/10')} opacity-20`}
-                />
-                <path
-                    d={`M ${points}`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className={color}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
-        );
-    };
 
     return (
         <div className="p-6 max-w-[1600px] mx-auto">
@@ -86,122 +70,161 @@ export default function AdminDashboard() {
                         <Calendar className="w-4 h-4 text-gray-500" />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Hoje: 29 Nov</span>
                     </div>
-                    <Button>
-                        Baixar Relatório
+                </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="animate-in fade-in duration-300">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    {stats.map((stat, index) => {
+                        const Icon = stat.icon;
+                        return (
+                            <div key={index} className="bg-white dark:bg-[#121212] p-4 rounded-xl border dark:border-white/5 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{stat.title}</span>
+                                    <span className={`p-1.5 rounded-lg ${stat.gradient.replace('from-', 'bg-').replace('/10', '/20').split(' ')[0]} ${stat.iconColor}`}>
+                                        <Icon className="w-4 h-4" />
+                                    </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</h3>
+                                    <span className={`text-xs font-medium flex items-center ${stat.trend === 'up'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : 'text-red-600 dark:text-red-400'
+                                        }`}>
+                                        {stat.trend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
+                                        {stat.change}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <Button
+                        variant="outline"
+                        className="justify-start gap-3 bg-white dark:bg-[#121212] border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300"
+                        onClick={() => router.push('/admin/produtos/novo')}
+                    >
+                        <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        Novo Produto
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="justify-start gap-3 bg-white dark:bg-[#121212] border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300"
+                        onClick={() => router.push('/admin/clientes/novo')}
+                    >
+                        <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                        Novo Cliente
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="justify-start gap-3 bg-white dark:bg-[#121212] border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300"
+                        onClick={() => router.push('/admin/cupons/novo')}
+                    >
+                        <CreditCard className="w-4 h-4 text-pink-600 dark:text-pink-400" />
+                        Criar Cupom
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="justify-start gap-3 bg-white dark:bg-[#121212] border-gray-200 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300"
+                        onClick={() => router.push('/admin/relatorios')}
+                    >
+                        <FileText className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        Relatórios
                     </Button>
                 </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => {
-                    const Icon = stat.icon;
-                    return (
-                        <div key={index} className="bg-white dark:bg-[#121212] p-6 rounded-2xl border dark:border-white/5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
-                            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.gradient} rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110`} />
-
-                            <div className="relative">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className={`p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 ${stat.iconColor}`}>
-                                        <Icon className="w-5 h-5" />
-                                    </div>
-                                    <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${stat.trend === 'up'
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
-                                            : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'
-                                        }`}>
-                                        {stat.change}
-                                        {stat.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1 mb-4">
-                                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{stat.value}</h3>
-                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.title}</p>
-                                </div>
-
-                                <div className="h-12">
-                                    <MiniChart data={stat.chartData} color={stat.iconColor} />
-                                </div>
-                            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Recent Orders */}
+                    <div className="lg:col-span-2 bg-white dark:bg-[#121212] rounded-2xl border dark:border-white/5 shadow-sm flex flex-col">
+                        <div className="p-6 border-b dark:border-white/5 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Pedidos Recentes</h2>
+                            <button
+                                onClick={() => router.push('/admin/pedidos')}
+                                className="text-sm text-gray-500 hover:text-black dark:hover:text-white transition-colors"
+                            >
+                                Ver todos
+                            </button>
                         </div>
-                    );
-                })}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Chart Section (Placeholder for now) */}
-                <div className="lg:col-span-2 bg-white dark:bg-[#121212] p-6 rounded-2xl border dark:border-white/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Receita</h2>
-                            <p className="text-xs text-gray-500">Comparativo com o período anterior</p>
+                        <div className="flex-1 overflow-auto p-0">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-white/5 sticky top-0">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium">ID</th>
+                                        <th className="px-4 py-3 font-medium">Cliente</th>
+                                        <th className="px-4 py-3 font-medium">Data</th>
+                                        <th className="px-4 py-3 font-medium">Status</th>
+                                        <th className="px-4 py-3 font-medium text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <tr
+                                            key={i}
+                                            onClick={() => router.push(`/admin/pedidos/ORD-00${i}`)}
+                                            className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                                        >
+                                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">#ORD-00{i}</td>
+                                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">Maria Silva</td>
+                                            <td className="px-4 py-3 text-gray-500">Hoje, 14:30</td>
+                                            <td className="px-4 py-3">
+                                                <span className="px-2 py-1 rounded text-[10px] font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400">
+                                                    Pendente
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">R$ 249,90</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                        <Dropdown
-                            options={['Últimos 7 dias', 'Últimos 30 dias', 'Este Ano']}
-                            onChange={() => { }}
-                            value="Últimos 7 dias"
-                        />
-                    </div>
-
-                    {/* Visual Placeholder for a big chart */}
-                    <div className="h-[300px] w-full flex items-end justify-between gap-2 px-4 pb-4 border-b border-l dark:border-white/5 relative">
-                        {/* Grid lines */}
-                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                            {[...Array(5)].map((_, i) => (
-                                <div key={i} className="w-full h-px bg-gray-100 dark:bg-white/5" />
-                            ))}
+                        <div className="p-4 border-t dark:border-white/5">
+                            <Button variant="outline" fullWidth onClick={() => router.push('/admin/pedidos')}>
+                                Ver todos os pedidos
+                            </Button>
                         </div>
+                    </div>
 
-                        {/* Bars */}
-                        {[65, 45, 75, 55, 85, 70, 90].map((h, i) => (
-                            <div key={i} className="w-full bg-gray-100 dark:bg-white/5 rounded-t-lg relative group h-full flex items-end">
-                                <div
-                                    className="w-full bg-black dark:bg-white rounded-t-lg transition-all duration-500 hover:opacity-80"
-                                    style={{ height: `${h}%` }}
-                                >
-                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded pointer-events-none whitespace-nowrap z-10">
-                                        R$ {(h * 150).toFixed(2)}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-between mt-4 text-xs text-gray-500 font-medium">
-                        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-                    </div>
-                </div>
-
-                {/* Recent Orders */}
-                <div className="bg-white dark:bg-[#121212] rounded-2xl border dark:border-white/5 shadow-sm flex flex-col">
-                    <div className="p-6 border-b dark:border-white/5 flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Pedidos Recentes</h2>
-                        <button className="text-sm text-gray-500 hover:text-black dark:hover:text-white transition-colors">Ver todos</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-                        <div className="space-y-1">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="flex items-center gap-4 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors cursor-pointer group">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-xs">
-                                        {['M', 'J', 'A', 'P', 'C'][i - 1]}
+                    {/* Top Customers Ranking */}
+                    <div className="bg-white dark:bg-[#121212] p-6 rounded-2xl border dark:border-white/5 shadow-sm h-fit">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Melhores Clientes</h2>
+                            <button className="text-xs text-blue-600 hover:underline">Ver todos</button>
+                        </div>
+                        <div className="space-y-6">
+                            {[
+                                { name: 'Ana Oliveira', spent: 'R$ 4.250,00', orders: 12, avatar: 'A' },
+                                { name: 'Carlos Santos', spent: 'R$ 3.890,00', orders: 8, avatar: 'C' },
+                                { name: 'Maria Silva', spent: 'R$ 2.450,00', orders: 15, avatar: 'M' },
+                                { name: 'João Souza', spent: 'R$ 1.890,00', orders: 6, avatar: 'J' },
+                                { name: 'Pedro Lima', spent: 'R$ 1.200,00', orders: 4, avatar: 'P' }
+                            ].map((customer, i) => (
+                                <div key={i} className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-sm">
+                                        {customer.avatar}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center mb-0.5">
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">Maria Silva</p>
-                                            <span className="text-xs font-medium text-green-600 dark:text-green-400">R$ 249,90</span>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{customer.name}</p>
+                                            <span className="text-sm font-bold text-gray-900 dark:text-white">{customer.spent}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <p className="text-xs text-gray-500 truncate">2 itens • Há 2h</p>
-                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400">Pendente</span>
+                                            <p className="text-xs text-gray-500">{customer.orders} pedidos</p>
+                                            <div className="w-16 h-1 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-green-500 rounded-full"
+                                                    style={{ width: `${(parseInt(customer.spent.replace(/\D/g, '')) / 425000) * 100}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                    <div className="p-4 border-t dark:border-white/5">
-                        <Button variant="outline" fullWidth>
-                            Ver todos os pedidos
-                        </Button>
                     </div>
                 </div>
             </div>
