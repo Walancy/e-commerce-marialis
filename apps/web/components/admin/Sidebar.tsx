@@ -164,25 +164,33 @@ export const AdminSidebar = ({ isCollapsed, toggleSidebar }: SidebarProps) => {
 
                 {/* User Profile */}
                 {/* User Profile */}
-                <Link
-                    href="/admin/perfil"
-                    className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''} p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer`}
-                >
-                    <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
-                        <img src="https://github.com/shadcn.png" alt="User" className="w-full h-full object-cover" />
-                    </div>
-
-                    {!isCollapsed && (
-                        <div className="flex-1 overflow-hidden">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">Admin User</p>
-                            <p className="text-xs text-gray-500 truncate">admin@marialis.com</p>
+                <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : 'justify-between'} mt-2`}>
+                    <Link
+                        href="/admin/perfil"
+                        className={`flex items-center gap-3 flex-1 min-w-0 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+                    >
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+                            <img src="https://github.com/shadcn.png" alt="User" className="w-full h-full object-cover" />
                         </div>
-                    )}
+
+                        {!isCollapsed && (
+                            <div className="flex-1 overflow-hidden text-left">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">Admin User</p>
+                                <p className="text-xs text-gray-500 truncate">admin@marialis.com</p>
+                            </div>
+                        )}
+                    </Link>
 
                     {!isCollapsed && (
-                        <LogOut className="w-4 h-4 text-gray-400 hover:text-red-500 transition-colors" />
+                        <Link
+                            href="/login"
+                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Sair"
+                        >
+                            <LogOut className="w-4 h-4" />
+                        </Link>
                     )}
-                </Link>
+                </div>
             </div>
         </aside>
     );
