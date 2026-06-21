@@ -1,14 +1,65 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Truck, Clock, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Truck, Clock, RotateCcw, Heart, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+
+// --- React Bits Inspired Animated Backgrounds --- //
+
+const AuroraBackground = ({ color1, color2 }: { color1: string, color2: string }) => (
+    <div className="absolute inset-0 overflow-hidden opacity-50 pointer-events-none">
+        <div 
+            className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] animate-[spin_20s_linear_infinite]"
+            style={{
+                backgroundImage: `radial-gradient(circle at 50% 50%, ${color1} 0%, transparent 40%), radial-gradient(circle at 80% 20%, ${color2} 0%, transparent 40%)`,
+                filter: 'blur(40px)'
+            }}
+        />
+    </div>
+);
+
+const SquaresBackground = ({ stroke, opacity, direction }: { stroke: string, opacity: number, direction: 'up' | 'diagonal' }) => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div 
+            className={`absolute w-[200%] h-[200%] ${direction === 'diagonal' ? '-top-[50%] -left-[50%] animate-[slideDiagonal_15s_linear_infinite]' : 'top-0 left-0 animate-[slideUp_15s_linear_infinite]'}`}
+            style={{
+                backgroundImage: `linear-gradient(${stroke} 1px, transparent 1px), linear-gradient(90deg, ${stroke} 1px, transparent 1px)`,
+                backgroundSize: '40px 40px',
+                opacity: opacity,
+                maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)',
+                WebkitMaskImage: 'radial-gradient(ellipse at center, black 20%, transparent 70%)'
+            }}
+        />
+        <style jsx>{`
+            @keyframes slideDiagonal {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(-40px, -40px); }
+            }
+            @keyframes slideUp {
+                0% { transform: translateY(0); }
+                100% { transform: translateY(-40px); }
+            }
+        `}</style>
+    </div>
+);
+
+const FuzzyOverlay = ({ opacity }: { opacity: number }) => (
+    <div className="absolute inset-0 pointer-events-none mix-blend-overlay" style={{ opacity }}>
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-60">
+            <filter id="noiseFilter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+            </filter>
+            <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+        </svg>
+    </div>
+);
 
 interface Slide {
     id: number;
-    type: string;
-    image: string;
+    theme: 'mothers-day' | 'brand-dark' | 'brand-orange' | 'brand-light';
+    icon: React.ReactNode;
     title: string;
     subtitle: string;
+    description: string;
     coupons?: { val: string; min: string; code: string; }[];
     cta?: string;
 }
@@ -16,14 +67,64 @@ interface Slide {
 const slides: Slide[] = [
     {
         id: 0,
-        type: 'promo',
-        image: '/banner-bf.png',
-        title: 'A BLACK FRIDAY ESTÁ CHEGANDO!',
-        subtitle: 'Promo Termina: 3 dez, 23:59 (BRT)',
+        theme: 'mothers-day',
+        icon: <Heart className="w-12 h-12 md:w-16 md:h-16 text-pink-200 mb-4 animate-pulse" />,
+        title: 'ESPECIAL DIA DAS MÃES',
+        subtitle: 'Amor que renova e transforma',
+        description: 'Presenteie com os melhores produtos de beleza. Kits exclusivos com descontos imperdíveis para ela.',
         coupons: [
-            { val: 'R$100 off', min: 'em R$550+', code: 'MARIALIS100' },
-            { val: 'R$540 off', min: 'em R$4.200+', code: 'MARIALIS540' },
-            { val: 'R$490 off', min: 'em R$3.200+', code: 'MARIALIS490' },
+            { val: '20% OFF', min: 'Kits Presente', code: 'MAE20' },
+            { val: 'R$50 off', min: 'em R$250+', code: 'AMOR50' },
+        ]
+    },
+    {
+        id: 1,
+        theme: 'brand-dark',
+        icon: <Sparkles className="w-12 h-12 md:w-16 md:h-16 text-[#ff6b00] mb-4" />,
+        title: 'FESTIVAL DO PROFISSIONAL',
+        subtitle: 'Abasteça seu salão agora',
+        description: 'Tudo o que seu estúdio precisa com preços de atacado. Renove seu estoque com as melhores marcas.',
+        coupons: [
+            { val: 'R$150 off', min: 'em R$800+', code: 'PRO150' },
+            { val: 'R$300 off', min: 'em R$1500+', code: 'PRO300' },
+            { val: 'R$500 off', min: 'em R$2500+', code: 'PRO500' },
+        ]
+    },
+    {
+        id: 2,
+        theme: 'brand-orange',
+        icon: <Zap className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" />,
+        title: 'DESCONTO PROGRESSIVO',
+        subtitle: 'Quanto mais você compra, mais você ganha',
+        description: 'Aproveite a semana progressiva Marialis. Descontos aplicados automaticamente no carrinho.',
+        coupons: [
+            { val: '10% OFF', min: 'em 2 itens', code: 'AUTO' },
+            { val: '15% OFF', min: 'em 3 itens', code: 'AUTO' },
+            { val: '25% OFF', min: 'em 5+ itens', code: 'AUTO' },
+        ]
+    },
+    {
+        id: 3,
+        theme: 'brand-light',
+        icon: <ShoppingBag className="w-12 h-12 md:w-16 md:h-16 text-gray-800 mb-4" />,
+        title: 'NOVIDADES DA SEMANA',
+        subtitle: 'Lançamentos exclusivos',
+        description: 'As ferramentas mais modernas do mercado acabaram de chegar. Garanta a sua antes que acabe.',
+        coupons: [
+            { val: 'Frete Grátis', min: 'Em lançamentos', code: 'NOVOFR' },
+            { val: 'Brinde', min: 'Nas compras R$200+', code: 'BRINDE' },
+        ]
+    },
+    {
+        id: 4,
+        theme: 'brand-dark',
+        icon: <Sparkles className="w-12 h-12 md:w-16 md:h-16 text-[#ff6b00] mb-4" />,
+        title: 'FESTIVAL DO CABELO',
+        subtitle: 'Cronograma Capilar Completo',
+        description: 'Shampoos, máscaras e finalizadores de uso profissional. Trate os fios das suas clientes com qualidade premium.',
+        coupons: [
+            { val: 'Compre 2', min: 'Leve 3', code: 'CABELO3' },
+            { val: '30% OFF', min: 'Em Máscaras', code: 'MASCARA30' },
         ]
     }
 ];
@@ -34,105 +135,154 @@ export const HeroCarousel = () => {
     const prev = () => setCurrent((curr) => (curr === 0 ? slides.length - 1 : curr - 1));
     const next = () => setCurrent((curr) => (curr === slides.length - 1 ? 0 : curr + 1));
 
+    // Auto-advance slides
+    useEffect(() => {
+        const timer = setInterval(next, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const getThemeClasses = (theme: Slide['theme']) => {
+        switch (theme) {
+            case 'mothers-day':
+                return {
+                    bg: 'bg-gradient-to-br from-pink-500 via-rose-400 to-pink-300',
+                    text: 'text-white',
+                    accent: 'text-pink-600',
+                    couponBg: 'bg-white',
+                    couponText: 'text-pink-600',
+                    couponBorder: 'border-pink-300',
+                    Effect: () => <AuroraBackground color1="rgba(255,182,193,0.8)" color2="rgba(255,105,180,0.6)" />
+                };
+            case 'brand-dark':
+                return {
+                    bg: 'bg-gray-900',
+                    text: 'text-white',
+                    accent: 'text-[#ff6b00]',
+                    couponBg: 'bg-[#1a1a1a]',
+                    couponText: 'text-[#ff6b00]',
+                    couponBorder: 'border-gray-700',
+                    Effect: () => <SquaresBackground stroke="#ff6b00" opacity={0.15} direction="diagonal" />
+                };
+            case 'brand-orange':
+                return {
+                    bg: 'bg-[#ff6b00]',
+                    text: 'text-white',
+                    accent: 'text-white',
+                    couponBg: 'bg-white/10 backdrop-blur-md',
+                    couponText: 'text-white',
+                    couponBorder: 'border-white/30',
+                    Effect: () => <FuzzyOverlay opacity={0.4} />
+                };
+            case 'brand-light':
+                return {
+                    bg: 'bg-gray-50',
+                    text: 'text-gray-900',
+                    accent: 'text-black',
+                    couponBg: 'bg-white',
+                    couponText: 'text-gray-900',
+                    couponBorder: 'border-gray-300',
+                    Effect: () => <SquaresBackground stroke="#000000" opacity={0.05} direction="up" />
+                };
+        }
+    };
+
     return (
-        <div className="relative w-full h-auto min-h-[300px] md:min-h-[300px] overflow-hidden group">
-            <div
-                className="flex transition-transform duration-700 ease-out h-full"
-                style={{ transform: `translateX(-${current * 100}%)` }}
-            >
-                {slides.map((slide) => (
-                    <div key={slide.id} className="w-full h-full flex-shrink-0 relative min-h-[300px] md:min-h-[300px]">
-                        {slide.type === 'promo' ? (
-                            // Black Friday Slide Layout
-                            <div className="w-full h-full bg-[#ff0040] flex items-center justify-center relative overflow-hidden pb-16 md:pb-0">
-                                <div className="absolute inset-0 bg-[url('/banner-bf.png')] bg-cover bg-center md:bg-right bg-no-repeat opacity-30 md:opacity-100 md:bg-contain md:bg-right-bottom"></div>
-                                <div className="container mx-auto px-6 z-10 flex flex-col justify-center items-start h-full max-w-7xl pb-8 pt-12 md:pt-0">
-                                    <div className="text-white font-bold mb-2 text-sm md:text-base bg-black/20 md:bg-transparent px-4 py-1 rounded-full">{slide.subtitle}</div>
-                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight max-w-3xl drop-shadow-md uppercase">
-                                        {slide.title}
-                                    </h2>
+        <div className="w-full flex flex-col mb-8 relative">
+            <div className="relative w-full h-auto min-h-[360px] md:min-h-[420px] overflow-hidden group">
+                <div
+                    className="flex transition-transform duration-700 ease-out h-full"
+                    style={{ transform: `translateX(-${current * 100}%)` }}
+                >
+                    {slides.map((slide) => {
+                        const theme = getThemeClasses(slide.theme);
+                        const BackgroundEffect = theme.Effect;
 
-                                    <div className="flex flex-wrap gap-3 justify-start max-w-md md:max-w-none">
-                                        {slide.coupons?.map((coupon, idx) => (
-                                            <div key={idx} className="bg-[#f8f9fa] text-[#ff0040] p-3 md:p-4 rounded-xl shadow-lg text-center min-w-[140px] transform hover:scale-105 transition-transform cursor-pointer border-2 border-dashed border-[#ff0040]">
-                                                <div className="text-xl md:text-2xl font-black">{coupon.val}</div>
-                                                <div className="text-xs md:text-sm font-medium text-gray-600">{coupon.min}</div>
-                                                <div className="text-[10px] md:text-xs mt-2 bg-gray-100 py-1 px-2 rounded text-gray-500 font-mono">Code: {coupon.code}</div>
-                                            </div>
-                                        ))}
+                        return (
+                            <div key={slide.id} className="w-full h-full flex-shrink-0 relative min-h-[360px] md:min-h-[420px]">
+                                <div className={`w-full h-full ${theme.bg} flex flex-col justify-center relative overflow-hidden pb-16 md:pb-0 transition-colors duration-500`}>
+                                    
+                                    {/* React Bits Inspired Effect */}
+                                    <div className="absolute inset-0 z-0">
+                                        <BackgroundEffect />
                                     </div>
-                                </div>
 
-                                {/* Bottom Benefits Bar */}
-                                <div className="absolute bottom-0 left-0 w-full bg-[#f8f9fa] py-3 md:py-2 px-6 flex flex-col md:flex-row justify-center items-center gap-2 md:gap-6 text-xs font-medium text-gray-700 shadow-inner z-20">
-                                    <div className="flex items-center gap-1.5"><Truck size={14} className="text-[#ff0040]" /> Frete grátis acima de R$99</div>
-                                    <div className="hidden md:block text-gray-300">|</div>
-                                    <div className="flex items-center gap-1.5"><Clock size={14} className="text-[#ff0040]" /> Entrega rápida</div>
-                                    <div className="hidden md:block text-gray-300">|</div>
-                                    <div className="flex items-center gap-1.5"><RotateCcw size={14} className="text-[#ff0040]" /> Devoluções grátis</div>
+                                    <div className="container mx-auto px-6 z-10 flex flex-col md:flex-row justify-between items-center h-full max-w-7xl pb-8 pt-12 md:pt-0 gap-8">
+                                        
+                                        {/* Left Text Content */}
+                                        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
+                                            {slide.icon}
+                                            <div className={`font-semibold mb-3 text-xs md:text-sm px-4 py-1.5 rounded-full tracking-wider uppercase ${slide.theme === 'brand-light' ? 'bg-black text-white' : 'bg-black/20 text-white'}`}>
+                                                {slide.subtitle}
+                                            </div>
+                                            <h2 className={`${theme.text} text-4xl md:text-6xl font-semibold mb-4 leading-tight max-w-2xl uppercase tracking-tight`}>
+                                                {slide.title}
+                                            </h2>
+                                            <p className={`${theme.text} opacity-90 text-sm md:text-base max-w-lg mb-8 font-medium`}>
+                                                {slide.description}
+                                            </p>
+                                        </div>
+
+                                        {/* Right Coupons Grid */}
+                                        {slide.coupons && (
+                                            <div className="flex-1 flex flex-wrap justify-center md:justify-end gap-3 w-full">
+                                                {slide.coupons.map((coupon, idx) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        className={`${theme.couponBg} ${theme.couponText} p-4 rounded-xl shadow-lg text-center min-w-[140px] md:min-w-[160px] transform hover:-translate-y-2 transition-all cursor-pointer border border-dashed ${theme.couponBorder} flex flex-col justify-center`}
+                                                    >
+                                                        <div className="text-2xl md:text-3xl font-semibold tracking-tighter">{coupon.val}</div>
+                                                        <div className="text-xs md:text-sm font-medium opacity-80 mt-1">{coupon.min}</div>
+                                                        <div className={`text-[10px] md:text-xs mt-3 py-1.5 px-3 rounded font-mono font-semibold tracking-widest uppercase ${slide.theme === 'brand-light' ? 'bg-gray-100 text-gray-500' : 'bg-black/10'}`}>
+                                                            Use: {coupon.code}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Bottom Benefits Bar (Persistent across slides) */}
+                                    <div className={`absolute bottom-0 left-0 w-full py-3 px-6 flex flex-col md:flex-row justify-center items-center gap-2 md:gap-6 text-xs font-semibold shadow-inner z-20 ${slide.theme === 'brand-light' ? 'bg-white text-gray-700 border-t border-gray-100' : 'bg-black/20 text-white backdrop-blur-sm'}`}>
+                                        <div className="flex items-center gap-2"><Truck size={15} /> Frete grátis acima de R$99</div>
+                                        <div className="hidden md:block opacity-30">|</div>
+                                        <div className="flex items-center gap-2"><Clock size={15} /> Entrega rápida</div>
+                                        <div className="hidden md:block opacity-30">|</div>
+                                        <div className="flex items-center gap-2"><RotateCcw size={15} /> Devoluções grátis</div>
+                                    </div>
                                 </div>
                             </div>
-                        ) : (
-                            // Standard Slide Layout
-                            <>
-                                <img
-                                    src={slide.image}
-                                    alt={slide.title}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/80 md:from-black/60 to-transparent flex items-end md:items-center px-6 md:px-16 pb-20 md:pb-0">
-                                    <div className="text-white max-w-xl space-y-4 translate-y-4 opacity-0 animate-fade-in-up md:pl-12">
-                                        <h2 className="text-3xl md:text-5xl font-bold leading-tight">{slide.title}</h2>
-                                        <p className="text-base md:text-lg text-gray-200">{slide.subtitle}</p>
-                                        <button className="bg-[#f8f9fa] text-black px-6 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors text-sm w-full md:w-auto">
-                                            {slide.cta}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                ))}
+                        );
+                    })}
+                </div>
+
+                {/* Arrows */}
+                <button
+                    onClick={prev}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100 z-20 hidden md:flex items-center justify-center"
+                >
+                    <ChevronLeft size={24} />
+                </button>
+                <button
+                    onClick={next}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100 z-20 hidden md:flex items-center justify-center"
+                >
+                    <ChevronRight size={24} />
+                </button>
             </div>
 
+            {/* Navigation Dots - Now outside and dark colored */}
             {slides.length > 1 && (
-                <>
-                    <div className="absolute bottom-16 md:bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                        {slides.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrent(i)}
-                                className={`w-2 h-2 rounded-full transition-all shadow-sm ${current === i ? "bg-[#f8f9fa] w-6" : "bg-[#f8f9fa]/50 hover:bg-[#f8f9fa]/80"
-                                    }`}
-                            />
-                        ))}
-                    </div>
-
-                    <button
-                        onClick={prev}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100 z-20 hidden md:block"
-                    >
-                        <ChevronLeft size={24} />
-                    </button>
-                    <button
-                        onClick={next}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/20 backdrop-blur-md hover:bg-black/40 text-white transition-all opacity-0 group-hover:opacity-100 z-20 hidden md:block"
-                    >
-                        <ChevronRight size={24} />
-                    </button>
-                </>
+                <div className="flex justify-center gap-2.5 mt-5">
+                    {slides.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setCurrent(i)}
+                            className={`h-2 rounded-full transition-all duration-300 shadow-sm ${current === i ? "bg-black dark:bg-white w-8 opacity-100" : "bg-gray-400 dark:bg-gray-600 w-2 opacity-50 hover:opacity-80"}`}
+                            aria-label={`Ir para slide ${i + 1}`}
+                        />
+                    ))}
+                </div>
             )}
-
-            <style jsx>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s ease-out forwards;
-          animation-delay: 0.3s;
-        }
-      `}</style>
         </div>
     );
 };

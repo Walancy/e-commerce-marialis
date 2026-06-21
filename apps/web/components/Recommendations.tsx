@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Sparkles } from 'lucide-react';
+import { fetchProducts, type StoreProduct } from '../services/productsService';
 
 interface Product {
     name: string;
@@ -18,7 +19,7 @@ interface Recommendation {
     products: Product[];
 }
 
-const recommendations: Recommendation[] = [
+const baseRecommendations = [
     {
         id: 1,
         image: '/Loiro recém descolorido..png',
@@ -30,11 +31,7 @@ const recommendations: Recommendation[] = [
             "Evitar água muito quente",
             "Protetor térmico antes de secar"
         ],
-        products: [
-            { name: "Shampoo Matizador", image: "https://placehold.co/200x200/png?text=Shampoo", price: "R$ 89,90" },
-            { name: "Máscara Reconstrutora", image: "https://placehold.co/200x200/png?text=Mascara", price: "R$ 129,90" },
-            { name: "Óleo Reparador", image: "https://placehold.co/200x200/png?text=Oleo", price: "R$ 59,90" }
-        ]
+        productIndexes: [0, 1, 2],
     },
     {
         id: 2,
@@ -47,10 +44,7 @@ const recommendations: Recommendation[] = [
             "Touca de cetim para dormir",
             "Reparação de pontas diária"
         ],
-        products: [
-            { name: "Kit Pós Química", image: "https://placehold.co/200x200/png?text=Kit", price: "R$ 199,90" },
-            { name: "Leave-in Protetor", image: "https://placehold.co/200x200/png?text=Leave-in", price: "R$ 79,90" }
-        ]
+        productIndexes: [3, 4],
     },
     {
         id: 3,
@@ -63,11 +57,7 @@ const recommendations: Recommendation[] = [
             "Co-wash intercalado",
             "Secagem com difusor"
         ],
-        products: [
-            { name: "Ativador de Cachos", image: "https://placehold.co/200x200/png?text=Ativador", price: "R$ 69,90" },
-            { name: "Gelatina Modeladora", image: "https://placehold.co/200x200/png?text=Gelatina", price: "R$ 49,90" },
-            { name: "Óleo de Coco", image: "https://placehold.co/200x200/png?text=Oleo", price: "R$ 39,90" }
-        ]
+        productIndexes: [5, 6, 7],
     },
     {
         id: 4,
@@ -80,15 +70,93 @@ const recommendations: Recommendation[] = [
             "Evitar pentear o cabelo seco",
             "Hidratação leve para não pesar"
         ],
-        products: [
-            { name: "Mousse Modelador", image: "https://placehold.co/200x200/png?text=Mousse", price: "R$ 55,90" },
-            { name: "Spray Texturizador", image: "https://placehold.co/200x200/png?text=Spray", price: "R$ 65,90" }
-        ]
+        productIndexes: [8, 9],
+    },
+    {
+        id: 5,
+        image: '/colorido.jfif',
+        title: "Cabelos Coloridos",
+        description: "Manutenção da cor e brilho intenso para cabelos tingidos com tons vibrantes.",
+        procedures: [
+            "Shampoo e condicionador com proteção de cor",
+            "Banho de brilho mensal",
+            "Evitar cloro e água do mar",
+            "Hidratação rica em antioxidantes"
+        ],
+        productIndexes: [10, 11, 12],
+    },
+    {
+        id: 6,
+        image: '/Couro Cabeludo Oleoso.jfif',
+        title: "Couro Cabeludo Oleoso",
+        description: "Equilíbrio e refrescância para raízes oleosas mantendo as pontas extremamente hidratadas.",
+        procedures: [
+            "Shampoo purificante ou detox",
+            "Esfoliação capilar quinzenal",
+            "Uso de tônico adstringente diário",
+            "Condicionar apenas comprimento e pontas"
+        ],
+        productIndexes: [13, 14, 15],
+    },
+    {
+        id: 7,
+        image: '/Liso Natural.png',
+        title: "Liso Natural",
+        description: "Controle de frizz e alinhamento perfeito sem perder o movimento leve do fio.",
+        procedures: [
+            "Shampoo e condicionador disciplinantes",
+            "Uso de leave-in fluido",
+            "Secagem natural ou com jato frio",
+            "Sérum reparador nas pontas"
+        ],
+        productIndexes: [0, 4, 8],
+    },
+    {
+        id: 8,
+        image: '/Grisalho ou Branco.jfif',
+        title: "Grisalho ou Branco",
+        description: "Prevenção do amarelamento e nutrição intensa para fios que perderam melanina.",
+        procedures: [
+            "Uso de shampoo desamarelador (silver)",
+            "Nutrição profunda quinzenal",
+            "Proteção solar capilar diária",
+            "Evitar chapinha em alta temperatura"
+        ],
+        productIndexes: [2, 7, 11],
+    },
+    {
+        id: 9,
+        image: '/Quebradiço e Elástico.jfif',
+        title: "Quebradiço e Elástico",
+        description: "Reconstrução profunda para devolver massa e resistência aos fios danificados.",
+        procedures: [
+            "Reconstrução com queratina pura",
+            "Pausa total em químicas",
+            "Uso de produtos ricos em aminoácidos",
+            "Corte bordado preventivo"
+        ],
+        productIndexes: [1, 5, 14],
     }
 ];
 
 export const Recommendations = () => {
     const [selectedRec, setSelectedRec] = useState<Recommendation | null>(null);
+    const [dbProducts, setDbProducts] = useState<StoreProduct[]>([]);
+
+    useEffect(() => {
+        fetchProducts().then(setDbProducts);
+    }, []);
+
+    const recommendations: Recommendation[] = baseRecommendations.map(rec => ({
+        ...rec,
+        products: rec.productIndexes.map(idx => {
+            const p = dbProducts[idx];
+            if (p) {
+                return { name: p.title, image: p.image, price: p.price };
+            }
+            return { name: 'Produto', image: 'https://placehold.co/200x200/png?text=Produto', price: 'R$ --' };
+        }),
+    }));
 
     // Lock body scroll when modal is open
     useEffect(() => {
@@ -107,17 +175,17 @@ export const Recommendations = () => {
             <div className="w-full px-4 lg:px-20">
                 <div className="text-center mb-12">
                     <p className="text-gray-500 text-sm uppercase tracking-wide mb-2">Nossas recomendações.</p>
-                    <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Qual o melhor produto para meu cabelo?</h2>
+                    <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">Qual o melhor produto para meu cabelo?</h2>
                 </div>
 
-                <div className="flex overflow-x-auto snap-x snap-mandatory pb-6 gap-4 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                <div className="flex overflow-x-auto snap-x snap-mandatory pb-8 pt-4 gap-4 md:gap-6 scrollbar-hide -mx-4 px-4 md:-mx-20 md:px-20">
                     {recommendations.map((item) => (
                         <div
                             key={item.id}
                             onClick={() => setSelectedRec(item)}
-                            className="min-w-[85vw] md:min-w-0 snap-center flex flex-col items-center text-center group cursor-pointer"
+                            className="flex-shrink-0 w-[85vw] sm:w-[280px] md:w-[320px] snap-center flex flex-col items-center text-center group cursor-pointer"
                         >
-                            <div className="w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 shadow-sm group-hover:shadow-md transition-all relative">
+                            <div className="w-full aspect-[16/9] md:aspect-square rounded-xl overflow-hidden mb-4 shadow-sm group-hover:shadow-md transition-all relative">
                                 <img
                                     src={item.image}
                                     alt={item.title}
@@ -132,7 +200,7 @@ export const Recommendations = () => {
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1">{item.title}</h3>
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">{item.title}</h3>
                             <p className="text-gray-500 text-[10px] max-w-[200px] leading-tight">
                                 {item.description}
                             </p>
@@ -166,14 +234,14 @@ export const Recommendations = () => {
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden flex items-end p-6">
-                                <h3 className="text-2xl font-bold text-white">{selectedRec.title}</h3>
+                                <h3 className="text-2xl font-semibold text-white">{selectedRec.title}</h3>
                             </div>
                         </div>
 
                         {/* Content Section */}
                         <div className="w-full md:w-3/5 p-6 md:p-8 flex flex-col gap-6 overflow-y-auto">
                             <div className="hidden md:block">
-                                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{selectedRec.title}</h3>
+                                <h3 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">{selectedRec.title}</h3>
                                 <p className="text-gray-600 dark:text-gray-300">{selectedRec.description}</p>
                             </div>
 
@@ -212,16 +280,12 @@ export const Recommendations = () => {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{prod.name}</p>
-                                                <p className="text-gray-900 dark:text-white font-bold text-sm">{prod.price}</p>
+                                                <p className="text-gray-900 dark:text-white font-semibold text-sm">{prod.price}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-
-                            <button className="w-full mt-auto bg-black dark:bg-white text-white dark:text-black py-3 rounded-xl font-medium hover:opacity-90 transition-opacity">
-                                Agendar Avaliação Gratuita
-                            </button>
                         </div>
                     </div>
                 </div>

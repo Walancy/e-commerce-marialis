@@ -85,3 +85,16 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Remove default blue focus outlines and tap highlights globally */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:focus {
+  outline: none !important;
+}
+
+*:focus-visible {
+  outline: none !important;
+}

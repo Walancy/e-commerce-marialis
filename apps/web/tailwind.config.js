@@ -39,10 +39,15 @@ module.exports = {
                 ticker: {
                     '0%': { transform: 'translateX(0)' },
                     '100%': { transform: 'translateX(-100%)' },
-                }
+                },
+                carousel: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-4240px)' },
+                },
             },
             animation: {
                 ticker: 'ticker 70s linear infinite',
+                carousel: 'carousel 55s linear infinite',
             }
         },
     },

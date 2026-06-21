@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Search, ShoppingBag, User, ChevronDown, Check, SlidersHorizontal, Sun, Moon, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, User, ChevronDown, Check, Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { CartDrawer } from './CartDrawer';
 
@@ -10,25 +10,83 @@ export const Header = () => {
     const { theme, setTheme } = useTheme();
     const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
     const [isScrolled, setIsScrolled] = useState(false);
-    const [showFilters, setShowFilters] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
+    const lastScrollY = React.useRef(0);
+    const ticking = React.useRef(false);
+    const filterBarRef = React.useRef<HTMLDivElement>(null);
+    const filterBarShown = React.useRef(true);
+    const THRESHOLD = 8;
 
-    useEffect(() => {
-        setMounted(true);
+    const showFilterBar = React.useCallback(() => {
+        if (filterBarShown.current) return;
+        filterBarShown.current = true;
+        const el = filterBarRef.current;
+        if (!el) return;
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        el.style.pointerEvents = 'auto';
+        el.style.maxHeight = '80px';
+        el.style.overflow = 'visible';
     }, []);
+
+    const hideFilterBar = React.useCallback(() => {
+        if (!filterBarShown.current) return;
+        filterBarShown.current = false;
+        const el = filterBarRef.current;
+        if (!el) return;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        el.style.pointerEvents = 'none';
+        el.style.maxHeight = '0px';
+        el.style.overflow = 'hidden';
+    }, []);
+
+    // Apply transition and initial styles once the filter bar mounts
+    const setFilterBarRef = React.useCallback((el: HTMLDivElement | null) => {
+        (filterBarRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+        if (el) {
+            el.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.25s ease';
+            el.style.overflow = 'visible';
+            el.style.maxHeight = '80px';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+            el.style.pointerEvents = 'auto';
+        }
+    }, []);
+
+    useEffect(() => { setMounted(true); }, []);
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-            if (window.scrollY <= 50) {
-                setShowFilters(false);
-            }
+            if (ticking.current) return;
+            ticking.current = true;
+
+            requestAnimationFrame(() => {
+                const currentY = window.scrollY;
+                const delta = currentY - lastScrollY.current;
+                const atTop = currentY <= 50;
+
+                setIsScrolled(!atTop);
+
+                if (atTop) {
+                    showFilterBar();
+                } else if (delta < -THRESHOLD) {
+                    showFilterBar();
+                    lastScrollY.current = currentY;
+                } else if (delta > THRESHOLD) {
+                    hideFilterBar();
+                    lastScrollY.current = currentY;
+                }
+
+                ticking.current = false;
+            });
         };
-        window.addEventListener('scroll', handleScroll);
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [showFilterBar, hideFilterBar]);
 
     const toggleFilter = (option: string) => {
         if (selectedFilters.includes(option)) {
@@ -127,18 +185,10 @@ export const Header = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1 md:gap-2">
-                            {isScrolled && shouldShowFilters && (
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`p-2 rounded-lg transition-all mr-2 hidden md:block relative ${showFilters ? 'bg-black text-white' : 'hover:bg-gray-100 text-gray-700'}`}
-                                >
-                                    <SlidersHorizontal className="w-5 h-5" />
-                                    {selectedFilters.length > 0 && !showFilters && (
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#ff6b00] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                                            {selectedFilters.length}
-                                        </span>
-                                    )}
-                                </button>
+                            {isScrolled && shouldShowFilters && selectedFilters.length > 0 && (
+                                <span className="w-5 h-5 bg-[#ff6b00] text-white text-[10px] font-bold rounded-full flex items-center justify-center mr-1 hidden md:flex">
+                                    {selectedFilters.length}
+                                </span>
                             )}
                             <a href="/perfil" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                                 <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
@@ -197,7 +247,7 @@ export const Header = () => {
 
                 {/* Integrated Filter Bar */}
                 {shouldShowFilters && (
-                    <div className={`transition-all duration-500 ease-in-out ${!isScrolled || showFilters ? 'max-h-24 opacity-100 overflow-visible' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                    <div ref={setFilterBarRef}>
                         <div className="mx-4 lg:mx-20 mb-4 mt-2 bg-gray-100 dark:bg-[#2a2a2a] rounded-lg flex items-center justify-between p-2">
                             <div className="flex items-center gap-2">
                                 {Object.entries({
@@ -276,7 +326,7 @@ export const Header = () => {
             </div>
 
             {/* Spacer for fixed header */}
-            <div className={`transition-all duration-300 ${!isScrolled ? (shouldShowFilters ? 'h-[200px]' : 'h-[128px]') : (showFilters && shouldShowFilters) ? 'h-[160px]' : 'h-[80px]'}`}></div>
+            <div className={`transition-all duration-300 ${!isScrolled ? (shouldShowFilters ? 'h-[200px]' : 'h-[128px]') : 'h-[80px]'}`}></div>
         </div>
     );
 };

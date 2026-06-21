@@ -1,42 +1,42 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { ProductCard } from '../../components/ProductCard';
-import { Filter, ChevronDown, Check, Star } from 'lucide-react';
+import { Filter, ChevronDown, Check, Star, Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { fetchProducts, type StoreProduct } from '../../services/productsService';
 
-// Mock Data
 const brands = ['Lizze', 'Vyz', 'Dejavu', 'Nátylla', 'Due'];
 const categories = ['Cabelos', 'Elétricos', 'Unhas', 'Pele', 'Móveis'];
 const prices = ['Até R$ 50', 'R$ 50 - R$ 100', 'R$ 100 - R$ 300', 'R$ 300 - R$ 500', 'Acima de R$ 500'];
-
-const allProducts = Array.from({ length: 20 }, (_, i) => ({
-    id: i + 1,
-    image: i % 2 === 0 ? '/product-flat-iron.png' : '/product-shampoo.png',
-    title: i % 2 === 0 ? `Prancha Extreme ${i + 1}` : `Kit Repair ${i + 1}`,
-    brand: brands[i % brands.length] || 'Brand',
-    price: i % 2 === 0 ? 'R$ 499,00' : 'R$ 149,90',
-    rating: Math.floor(Math.random() * 5) + 1,
-    category: categories[i % categories.length] || 'Category'
-}));
 
 export default function ShopPage() {
     const searchParams = useSearchParams();
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<string[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadProducts() {
+            setLoading(true);
+            const products = await fetchProducts();
+            setAllProducts(products);
+            setLoading(false);
+        }
+        loadProducts();
+    }, []);
 
     React.useEffect(() => {
         const filters = searchParams.get('filters');
         if (filters) {
-            console.log('Filters from URL:', filters);
             const filterList = filters.split(',');
             const validCats = filterList.filter(f => categories.includes(f));
             if (validCats.length) setSelectedCategories(validCats);
-
-            // Also check for brands in the URL filters
             const validBrands = filterList.filter(f => brands.includes(f));
             if (validBrands.length) setSelectedBrands(validBrands);
         }
@@ -69,17 +69,12 @@ export default function ShopPage() {
     };
 
     const filteredProducts = allProducts.filter(product => {
-        // Category Filter
         if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
             return false;
         }
-
-        // Brand Filter
         if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) {
             return false;
         }
-
-        // Price Filter
         if (priceRange.length > 0) {
             const price = parsePrice(product.price);
             const matchesPrice = priceRange.some(range => {
@@ -92,7 +87,11 @@ export default function ShopPage() {
             });
             if (!matchesPrice) return false;
         }
-
+        if (searchQuery.trim().length > 0) {
+            if (!product.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return false;
+            }
+        }
         return true;
     });
 
@@ -181,38 +180,30 @@ export default function ShopPage() {
                             </div>
                         </div>
 
-                        {/* Rating */}
-                        <div>
-                            <h3
-                                className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center justify-between cursor-pointer select-none"
-                                onClick={() => toggleSection('Avaliação')}
-                            >
-                                Avaliação
-                                <ChevronDown size={16} className={`transition-transform duration-200 ${expandedSections['Avaliação'] ? 'rotate-180' : ''}`} />
-                            </h3>
-                            <div className={`space-y-2 overflow-hidden transition-all duration-300 ${expandedSections['Avaliação'] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                {[5, 4, 3, 2, 1].map(star => (
-                                    <label key={star} className="flex items-center gap-2 cursor-pointer group">
-                                        <div className="flex items-center text-yellow-400">
-                                            {Array.from({ length: 5 }).map((_, i) => (
-                                                <Star key={i} size={14} fill={i < star ? "currentColor" : "none"} className={i < star ? "" : "text-gray-300 dark:text-gray-600"} />
-                                            ))}
-                                        </div>
-                                        <span className="text-gray-600 dark:text-gray-400 text-sm">& Acima</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
+
                     </aside>
 
                     {/* Product Grid */}
                     <div className="flex-1">
                         {/* Sort and Count */}
-                        <div className="flex items-center justify-between mb-6">
-                            <p className="text-gray-500 text-sm">Mostrando <span className="font-bold text-black dark:text-white">{filteredProducts.length}</span> produtos</p>
+                        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                            <p className="text-gray-500 text-sm w-full sm:w-auto text-center sm:text-left">
+                                Mostrando <span className="font-semibold text-black dark:text-white">{filteredProducts.length}</span> produtos
+                            </p>
 
-                            <div className="relative group z-20">
-                                <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap bg-gray-100 dark:bg-[#2a2a2a] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#333]">
+                            <div className="relative w-full sm:max-w-md flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar produtos..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2a2a2a] text-gray-900 dark:text-white focus:outline-none focus:ring-0 focus:border-black dark:focus:border-white transition-shadow text-sm"
+                                />
+                            </div>
+
+                            <div className="relative group z-20 w-full sm:w-auto flex justify-end">
+                                <button className="flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap bg-gray-100 dark:bg-[#2a2a2a] text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#333]">
                                     {sortBy}
                                     <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-transform group-hover:rotate-180" />
                                 </button>
@@ -238,20 +229,45 @@ export default function ShopPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} {...product} />
-                            ))}
-                        </div>
+                        {/* Loading Skeleton */}
+                        {loading && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                    <div key={i} className="flex flex-col gap-3 animate-pulse">
+                                        <div className="w-full aspect-square bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+                                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Products */}
+                        {!loading && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {filteredProducts.map((product) => (
+                                    <ProductCard key={product.id} {...product} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Empty state */}
+                        {!loading && filteredProducts.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-24 text-center">
+                                <p className="text-gray-400 text-lg mb-2">Nenhum produto encontrado</p>
+                                <p className="text-gray-300 text-sm">Tente ajustar os filtros para ver mais resultados.</p>
+                            </div>
+                        )}
 
                         {/* Pagination */}
-                        <div className="flex justify-center mt-12 gap-2">
-                            <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300">1</button>
-                            <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-bold">2</button>
-                            <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300">3</button>
-                            <span className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-                            <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300">12</button>
-                        </div>
+                        {!loading && filteredProducts.length > 0 && (
+                            <div className="flex justify-center mt-12 gap-2">
+                                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-0">1</button>
+                                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-semibold focus:outline-none focus:ring-0">2</button>
+                                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-300">3</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
