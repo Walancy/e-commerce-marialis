@@ -142,19 +142,42 @@ const baseRecommendations = [
 export const Recommendations = () => {
     const [selectedRec, setSelectedRec] = useState<Recommendation | null>(null);
     const [dbProducts, setDbProducts] = useState<StoreProduct[]>([]);
+    const [recList, setRecList] = useState<typeof baseRecommendations>(baseRecommendations);
 
     useEffect(() => {
         fetchProducts().then(setDbProducts);
+
+        const fetchRecommendations = async () => {
+            try {
+                const { supabase } = await import('../lib/supabase');
+                const { data, error } = await supabase
+                    .from('recommendations')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (!error && data && data.length > 0) {
+                    setRecList(data);
+                }
+            } catch (err) {
+                console.error("Error fetching recommendations:", err);
+            }
+        };
+        fetchRecommendations();
     }, []);
 
-    const recommendations: Recommendation[] = baseRecommendations.map(rec => ({
-        ...rec,
-        products: rec.productIndexes.map(idx => {
+    const recommendations: Recommendation[] = recList.map(rec => ({
+        id: rec.id,
+        image: rec.image,
+        title: rec.title,
+        description: rec.description || '',
+        procedures: Array.isArray(rec.procedures) ? rec.procedures : [],
+        products: (rec.product_indexes || rec.productIndexes || [0, 1]).map((idx: number) => {
             const p = dbProducts[idx];
             if (p) {
                 return { name: p.title, image: p.image, price: p.price };
             }
-            return { name: 'Produto', image: 'https://placehold.co/200x200/png?text=Produto', price: 'R$ --' };
+            return { name: 'Produto Recomendado', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&h=200&fit=crop', price: 'R$ 89,90' };
         }),
     }));
 

@@ -18,6 +18,11 @@ interface CartDrawerProps {
 }
 
 export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
+    const [couponCode, setCouponCode] = React.useState('');
+    const [discountAmount, setDiscountAmount] = React.useState(0);
+    const [appliedCoupon, setAppliedCoupon] = React.useState<string | null>(null);
+    const [couponError, setCouponError] = React.useState<string | null>(null);
+
     // Mock data
     const cartItems: CartItem[] = [
         {
@@ -36,7 +41,68 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         }
     ];
 
-    const total = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    const handleApplyCoupon = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCouponError(null);
+        if (!couponCode.trim()) return;
+
+        try {
+            const { supabase } = await import('../lib/supabase');
+            const codeClean = couponCode.trim().toUpperCase();
+            const { data, error } = await supabase
+                .from('coupons')
+                .select('*')
+                .eq('code', codeClean)
+                .eq('is_active', true)
+                .single();
+
+            if (error || !data) {
+                setCouponError('Cupom inválido ou desativado.');
+                setDiscountAmount(0);
+                setAppliedCoupon(null);
+                return;
+            }
+
+            const now = new Date();
+            if (data.starts_at && new Date(data.starts_at) > now) {
+                setCouponError('Este cupom ainda não está ativo.');
+                setDiscountAmount(0);
+                setAppliedCoupon(null);
+                return;
+            }
+
+            if (data.expires_at && new Date(data.expires_at) < now) {
+                setCouponError('Este cupom já expirou.');
+                setDiscountAmount(0);
+                setAppliedCoupon(null);
+                return;
+            }
+
+            if (data.min_purchase && subtotal < data.min_purchase) {
+                setCouponError(`Compra mínima para este cupom: R$ ${data.min_purchase.toFixed(2)}`);
+                setDiscountAmount(0);
+                setAppliedCoupon(null);
+                return;
+            }
+
+            let calc = 0;
+            if (data.discount_type === 'percentage') {
+                calc = (subtotal * data.discount_value) / 100;
+            } else {
+                calc = data.discount_value;
+            }
+
+            setDiscountAmount(calc);
+            setAppliedCoupon(data.code);
+            setCouponError(null);
+        } catch (err) {
+            setCouponError('Erro ao validar cupom.');
+        }
+    };
+
+    const finalTotal = Math.max(0, subtotal - discountAmount);
 
     return (
         <>
@@ -95,20 +161,47 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         ))}
                     </div>
 
+                    {/* Coupon Section */}
+                    <div className="px-6 py-3 border-t dark:border-gray-800 bg-gray-50/50 dark:bg-[#1e1e1e]">
+                        <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Cupom de desconto"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="flex-1 px-3 py-2 text-xs bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-gray-700 rounded-lg outline-none uppercase font-mono"
+                            />
+                            <button
+                                type="submit"
+                                className="px-4 py-2 text-xs font-bold bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90 transition-opacity"
+                            >
+                                Aplicar
+                            </button>
+                        </form>
+                        {couponError && <p className="text-[11px] text-red-500 mt-1">{couponError}</p>}
+                        {appliedCoupon && <p className="text-[11px] text-green-600 dark:text-green-400 mt-1 font-semibold">Cupom {appliedCoupon} aplicado com sucesso!</p>}
+                    </div>
+
                     {/* Footer */}
                     <div className="p-6 border-t dark:border-gray-800 bg-gray-50 dark:bg-[#222]">
                         <div className="space-y-3 mb-6">
                             <div className="flex items-center justify-between text-sm text-gray-500">
                                 <span>Subtotal</span>
-                                <span>R$ {total.toFixed(2)}</span>
+                                <span>R$ {subtotal.toFixed(2)}</span>
                             </div>
+                            {discountAmount > 0 && (
+                                <div className="flex items-center justify-between text-sm text-green-600 dark:text-green-400 font-medium">
+                                    <span>Desconto ({appliedCoupon})</span>
+                                    <span>- R$ {discountAmount.toFixed(2)}</span>
+                                </div>
+                            )}
                             <div className="flex items-center justify-between text-sm text-gray-500">
                                 <span>Frete</span>
                                 <span className="text-green-600 font-medium">Grátis</span>
                             </div>
                             <div className="flex items-center justify-between text-lg font-bold text-gray-900 dark:text-white pt-3 border-t dark:border-gray-700">
                                 <span>Total</span>
-                                <span>R$ {total.toFixed(2)}</span>
+                                <span>R$ {finalTotal.toFixed(2)}</span>
                             </div>
                         </div>
                         <Button

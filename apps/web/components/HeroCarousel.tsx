@@ -2,6 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Truck, Clock, RotateCcw, Heart, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+const getIconByName = (name?: string, theme?: string) => {
+    switch (name) {
+        case 'Heart': return <Heart className="w-12 h-12 md:w-16 md:h-16 text-pink-200 mb-4 animate-pulse" />;
+        case 'Zap': return <Zap className="w-12 h-12 md:w-16 md:h-16 text-white mb-4" />;
+        case 'ShoppingBag': return <ShoppingBag className="w-12 h-12 md:w-16 md:h-16 text-gray-800 mb-4" />;
+        case 'Sparkles':
+        default:
+            return <Sparkles className="w-12 h-12 md:w-16 md:h-16 text-[#ff6b00] mb-4" />;
+    }
+};
 
 // --- React Bits Inspired Animated Backgrounds --- //
 
@@ -130,16 +142,55 @@ const slides: Slide[] = [
 ];
 
 export const HeroCarousel = () => {
+    const [activeSlides, setActiveSlides] = useState<Slide[]>(slides);
     const [current, setCurrent] = useState(0);
 
-    const prev = () => setCurrent((curr) => (curr === 0 ? slides.length - 1 : curr - 1));
-    const next = () => setCurrent((curr) => (curr === slides.length - 1 ? 0 : curr + 1));
+    useEffect(() => {
+        const fetchSlides = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('hero_slides')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+
+                if (!error && data && data.length > 0) {
+                    const now = new Date();
+                    const filtered = data.filter(item => {
+                        if (item.start_date && new Date(item.start_date) > now) return false;
+                        if (item.end_date && new Date(item.end_date) < now) return false;
+                        return true;
+                    });
+
+                    if (filtered.length > 0) {
+                        const formatted: Slide[] = filtered.map((item, idx) => ({
+                            id: item.id || idx,
+                            theme: item.theme || 'brand-dark',
+                            icon: getIconByName(item.icon_name, item.theme),
+                            title: item.title,
+                            subtitle: item.subtitle || '',
+                            description: item.description || '',
+                            coupons: item.coupons || [],
+                            cta: item.cta
+                        }));
+                        setActiveSlides(formatted);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching hero slides:", err);
+            }
+        };
+        fetchSlides();
+    }, []);
+
+    const prev = () => setCurrent((curr) => (curr === 0 ? activeSlides.length - 1 : curr - 1));
+    const next = () => setCurrent((curr) => (curr === activeSlides.length - 1 ? 0 : curr + 1));
 
     // Auto-advance slides
     useEffect(() => {
         const timer = setInterval(next, 5000);
         return () => clearInterval(timer);
-    }, []);
+    }, [activeSlides.length]);
 
     const getThemeClasses = (theme: Slide['theme']) => {
         switch (theme) {
@@ -187,7 +238,7 @@ export const HeroCarousel = () => {
     };
 
     return (
-        <div className="w-full flex flex-col mb-8 relative">
+        <div className="w-full flex flex-col mb-8 relative overflow-hidden">
             <div className="relative w-full h-auto min-h-[360px] md:min-h-[420px] overflow-hidden group">
                 <div
                     className="flex transition-transform duration-700 ease-out h-full"
@@ -270,19 +321,20 @@ export const HeroCarousel = () => {
                 </button>
             </div>
 
-            {/* Navigation Dots - Now outside and dark colored */}
-            {slides.length > 1 && (
-                <div className="flex justify-center gap-2.5 mt-5">
-                    {slides.map((_, i) => (
+            {/* Progress Indicators */}
+            <div className="flex justify-between items-center relative z-10 pt-4 border-t border-white/10">
+                <div className="flex gap-2">
+                    {activeSlides.map((_, index) => (
                         <button
-                            key={i}
-                            onClick={() => setCurrent(i)}
-                            className={`h-2 rounded-full transition-all duration-300 shadow-sm ${current === i ? "bg-black dark:bg-white w-8 opacity-100" : "bg-gray-400 dark:bg-gray-600 w-2 opacity-50 hover:opacity-80"}`}
-                            aria-label={`Ir para slide ${i + 1}`}
+                            key={index}
+                            onClick={() => setCurrent(index)}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${current === index ? 'w-8 bg-[#ff6b00]' : 'w-2 bg-white/30 hover:bg-white/50'
+                                }`}
+                            aria-label={`Go to slide ${index + 1}`}
                         />
                     ))}
                 </div>
-            )}
+            </div>
         </div>
     );
 };

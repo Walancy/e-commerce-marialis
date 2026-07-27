@@ -1,17 +1,42 @@
-import React from 'react';
+"use client";
 
-const brands = [
-    { name: 'Lizze', logo: '/marcas/Vector.svg', height: 'h-8' },
-    { name: 'Dejavu', logo: '/marcas/Subtract.svg', height: 'h-8' },
-    { name: 'Nátylla', logo: '/marcas/natylla.svg', height: 'h-8' },
-    { name: 'Due', logo: '/marcas/due.svg', height: 'h-10' },
-    { name: 'VYZ', logo: '/marcas/vyz.svg', height: 'h-10' },
-    { name: 'Artbelle', logo: '/marcas/artbelle.svg', height: 'h-8' },
-];
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+
+interface BrandItem {
+    id: string;
+    name: string;
+    logo?: string;
+    status?: string;
+}
 
 export const BrandsSection = () => {
+    const [brandItems, setBrandItems] = useState<BrandItem[]>([]);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('brands')
+                    .select('id, name, logo, status')
+                    .order('name', { ascending: true });
+
+                if (!error && data) {
+                    // Filter to only include active brands
+                    const activeBrands = (data as BrandItem[]).filter(b => b.status === 'Ativo' || !b.status);
+                    setBrandItems(activeBrands);
+                }
+            } catch (err) {
+                console.error("Error fetching brands for e-commerce:", err);
+            }
+        };
+        fetchBrands();
+    }, []);
+
+    if (brandItems.length === 0) return null;
+
     return (
-        <section className="py-20">
+        <section className="py-16 md:py-20">
             <div className="max-w-[1600px] mx-auto px-4 lg:px-20">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -22,17 +47,23 @@ export const BrandsSection = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center justify-items-center">
-                    {brands.map((brand) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 items-center justify-items-center">
+                    {brandItems.map((brand) => (
                         <div
-                            key={brand.name}
-                            className="w-full h-32 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center p-6 group cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                            key={brand.id || brand.name}
+                            className="w-full h-28 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center p-4 group cursor-pointer border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700"
                         >
-                            <img
-                                src={brand.logo}
-                                alt={brand.name}
-                                className={`${brand.height} w-auto object-contain opacity-60 group-hover:opacity-100 transition-all duration-300 brightness-0 dark:invert`}
-                            />
+                            {brand.logo ? (
+                                <img
+                                    src={brand.logo}
+                                    alt={brand.name}
+                                    className="max-h-12 w-auto object-contain opacity-80 group-hover:opacity-100 transition-all duration-300 brightness-0 dark:brightness-100"
+                                />
+                            ) : (
+                                <span className="font-semibold text-base text-gray-700 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition-colors">
+                                    {brand.name}
+                                </span>
+                            )}
                         </div>
                     ))}
                 </div>

@@ -5,6 +5,22 @@ import { usePathname } from 'next/navigation';
 import { Search, ShoppingBag, User, ChevronDown, Check, Sun, Moon, Menu, X } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { CartDrawer } from './CartDrawer';
+import { supabase } from '../lib/supabase';
+
+interface TickerItem {
+    id: number;
+    text: string;
+    bold_text?: string;
+    link?: string;
+}
+
+const defaultTickerItems: TickerItem[] = [
+    { id: 1, text: 'para todo o Brasil', bold_text: 'FRETE GRÁTIS' },
+    { id: 2, text: 'CUPOM:', bold_text: 'BEMVINDO10' },
+    { id: 3, text: 'no cartão', bold_text: 'ATÉ 12X SEM JUROS' },
+    { id: 4, text: 'no PIX', bold_text: '5% OFF' },
+    { id: 5, text: 'OFERTAS de', bold_text: 'até 50% OFF' }
+];
 
 export const Header = () => {
     const { theme, setTheme } = useTheme();
@@ -18,6 +34,25 @@ export const Header = () => {
     const filterBarRef = React.useRef<HTMLDivElement>(null);
     const filterBarShown = React.useRef(true);
     const THRESHOLD = 8;
+    const [tickerItems, setTickerItems] = useState<TickerItem[]>(defaultTickerItems);
+
+    useEffect(() => {
+        const fetchTicker = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('header_ticker')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('display_order', { ascending: true });
+                if (!error && data && data.length > 0) {
+                    setTickerItems(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch header ticker:", err);
+            }
+        };
+        fetchTicker();
+    }, []);
 
     const showFilterBar = React.useCallback(() => {
         if (filterBarShown.current) return;
@@ -118,25 +153,15 @@ export const Header = () => {
                             {/* Duplicated list for seamless infinite scroll */}
                             {[...Array(10)].map((_, i) => (
                                 <div key={i} className="flex items-center shrink-0 gap-12 mx-6">
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                        <span className="font-bold text-black dark:text-white">FRETE GRÁTIS</span> para todo o Brasil
-                                    </span>
-                                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                        CUPOM: <span className="font-bold text-black dark:text-white bg-gray-200 dark:bg-gray-700 px-1 rounded">BEMVINDO10</span>
-                                    </span>
-                                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                        <span className="font-bold text-black dark:text-white">ATÉ 12X SEM JUROS</span> no cartão
-                                    </span>
-                                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                        <span className="font-bold text-black dark:text-white">5% OFF</span> no PIX
-                                    </span>
-                                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                        OFERTAS de <span className="font-bold text-[#ff6b00]">até 50% OFF</span>
-                                    </span>
+                                    {tickerItems.map((item, idx) => (
+                                        <React.Fragment key={`${item.id}-${idx}`}>
+                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                                {item.bold_text && <span className="font-bold text-black dark:text-white bg-gray-200 dark:bg-gray-700 px-1 rounded">{item.bold_text}</span>}
+                                                {item.text}
+                                            </span>
+                                            {idx < tickerItems.length - 1 && <span className="text-gray-300 dark:text-gray-600">•</span>}
+                                        </React.Fragment>
+                                    ))}
                                 </div>
                             ))}
                         </div>
@@ -200,9 +225,6 @@ export const Header = () => {
                                 <ShoppingBag className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                             </button>
-                            <a href="/admin" className="hidden md:block bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors whitespace-nowrap ml-2">
-                                Área Administrativa
-                            </a>
                             <button
                                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -238,9 +260,6 @@ export const Header = () => {
                                 <a href="/marcas" className="py-2 border-b dark:border-gray-800">Marcas</a>
                                 <a href="/ofertas" className="py-2 border-b dark:border-gray-800 text-red-600">Ofertas</a>
                             </nav>
-                            <a href="/admin" className="bg-black dark:bg-white text-white dark:text-black text-sm font-medium px-6 py-3 rounded-lg w-full mt-4 text-center">
-                                Área Administrativa
-                            </a>
                         </div>
                     )}
                 </div>
