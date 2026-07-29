@@ -27,7 +27,7 @@ export default function LoginPage() {
     useEffect(() => {
         setIsMounted(true);
         const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-        setBgImage(randomImage || backgroundImages[0]);
+        setBgImage(randomImage || backgroundImages[0] || "");
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {

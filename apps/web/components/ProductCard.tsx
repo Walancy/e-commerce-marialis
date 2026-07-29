@@ -4,7 +4,7 @@ import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 
 interface ProductCardProps {
-    id: string;
+    id: string | number;
     image: string;
     title: string;
     brand: string;

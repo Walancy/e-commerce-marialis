@@ -29,7 +29,7 @@ export default function RegisterPage() {
     useEffect(() => {
         setIsMounted(true);
         const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-        setBgImage(randomImage || backgroundImages[0]);
+        setBgImage(randomImage || backgroundImages[0] || "");
     }, []);
 
     const handleRegister = async (e: React.FormEvent) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { ProductCard } from '../../components/ProductCard';
@@ -12,7 +12,7 @@ const brands = ['Lizze', 'Vyz', 'Dejavu', 'Nátylla', 'Due'];
 const categories = ['Cabelos', 'Elétricos', 'Unhas', 'Pele', 'Móveis'];
 const prices = ['Até R$ 50', 'R$ 50 - R$ 100', 'R$ 100 - R$ 300', 'R$ 300 - R$ 500', 'Acima de R$ 500'];
 
-export default function ShopPage() {
+function ShopContent() {
     const searchParams = useSearchParams();
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -273,5 +273,17 @@ export default function ShopPage() {
             </div>
             <Footer />
         </main>
+    );
+}
+
+export default function ShopPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white dark:bg-[#121212] flex items-center justify-center p-6">
+                <div className="text-gray-500">Carregando loja...</div>
+            </div>
+        }>
+            <ShopContent />
+        </Suspense>
     );
 }

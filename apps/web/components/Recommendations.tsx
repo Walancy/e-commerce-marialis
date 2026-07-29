@@ -172,7 +172,7 @@ export const Recommendations = () => {
         title: rec.title,
         description: rec.description || '',
         procedures: Array.isArray(rec.procedures) ? rec.procedures : [],
-        products: (rec.product_indexes || rec.productIndexes || [0, 1]).map((idx: number) => {
+        products: ((rec as any).product_indexes || rec.productIndexes || [0, 1]).map((idx: number) => {
             const p = dbProducts[idx];
             if (p) {
                 return { name: p.title, image: p.image, price: p.price };

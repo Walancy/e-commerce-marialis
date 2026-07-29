@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
     ArrowLeft,
     Save,
@@ -42,7 +42,7 @@ const BRAND_LOGOS: Record<string, string> = {
     'Dejavu': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png', // Placeholder
 };
 
-export default function NewProductPage() {
+function NewProductContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isKit = searchParams.get('type') === 'kit';
@@ -885,5 +885,17 @@ export default function NewProductPage() {
                 )}
             </div>
         </div >
+    );
+}
+
+export default function NewProductPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 dark:bg-[#121212] flex items-center justify-center p-6">
+                <div className="text-gray-500">Carregando formulário...</div>
+            </div>
+        }>
+            <NewProductContent />
+        </Suspense>
     );
 }
