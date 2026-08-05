@@ -47,11 +47,11 @@ export const BrandsSection = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 items-center justify-items-center">
+                <div className="flex flex-wrap items-center justify-center gap-6 max-w-6xl mx-auto">
                     {brandItems.map((brand) => (
                         <div
                             key={brand.id || brand.name}
-                            className="w-full h-28 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center p-4 group cursor-pointer border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700"
+                            className="w-40 sm:w-48 lg:w-52 h-28 bg-white dark:bg-[#1a1a1a] rounded-xl transition-all duration-300 flex items-center justify-center p-4 group cursor-pointer"
                         >
                             {brand.logo ? (
                                 <img
