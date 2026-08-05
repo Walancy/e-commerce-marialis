@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Search } from 'lucide-react';
 
 export interface DropdownOption {
     label: string;
@@ -17,6 +17,7 @@ interface DropdownProps {
     className?: string;
     triggerClassName?: string;
     multiSelect?: boolean;
+    searchable?: boolean;
 }
 
 export const Dropdown = ({
@@ -27,26 +28,40 @@ export const Dropdown = ({
     placeholder = "Selecione",
     className = "",
     triggerClassName = "",
-    multiSelect = false
+    multiSelect = false,
+    searchable = true
 }: DropdownProps) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Normalize options
     const normalizedOptions: DropdownOption[] = options.map(opt =>
         typeof opt === 'string' ? { label: opt, value: opt } : opt
     );
 
+    const filteredOptions = searchable && searchTerm
+        ? normalizedOptions.filter(opt => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
+        : normalizedOptions;
+
     // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
+                setSearchTerm('');
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (isOpen && searchable) {
+            setTimeout(() => searchInputRef.current?.focus(), 50);
+        }
+    }, [isOpen, searchable]);
 
     const handleSelect = (optionValue: string) => {
         if (multiSelect) {
@@ -58,6 +73,7 @@ export const Dropdown = ({
         } else {
             onChange(optionValue);
             setIsOpen(false);
+            setSearchTerm('');
         }
     };
 
@@ -113,24 +129,46 @@ export const Dropdown = ({
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl border dark:border-white/10 p-2 z-50 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto custom-scrollbar">
-                    {normalizedOptions.map((option) => {
-                        const selected = isSelected(option.value);
-                        return (
-                            <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => handleSelect(option.value)}
-                                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left ${selected
-                                        ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white font-medium'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
-                                    }`}
-                            >
-                                <span className="truncate">{option.label}</span>
-                                {selected && <Check className="w-3.5 h-3.5 flex-shrink-0 ml-2" />}
-                            </button>
-                        );
-                    })}
+                <div className="absolute top-full left-0 mt-2 w-full min-w-[180px] bg-white dark:bg-[#1a1a1a] rounded-xl shadow-xl border dark:border-white/10 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    {searchable && (
+                        <div className="relative mb-2 flex-shrink-0">
+                            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Buscar..."
+                                className="w-full pl-8 pr-2 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white outline-none focus:border-black dark:focus:border-white transition-all"
+                            />
+                        </div>
+                    )}
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                        {filteredOptions.length > 0 ? (
+                            filteredOptions.map((option) => {
+                                const selected = isSelected(option.value);
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => handleSelect(option.value)}
+                                        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left ${selected
+                                                ? 'bg-gray-100 dark:bg-white/10 text-black dark:text-white font-medium'
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                                            }`}
+                                    >
+                                        <span className="truncate">{option.label}</span>
+                                        {selected && <Check className="w-3.5 h-3.5 flex-shrink-0 ml-2" />}
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <div className="px-3 py-2 text-sm text-center text-gray-400">
+                                Nenhum resultado encontrado
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

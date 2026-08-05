@@ -7,7 +7,7 @@ import { Dropdown } from '../../../components/ui/Dropdown';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import { DataTable } from '../../../components/ui/DataTable';
 import { Switch } from '../../../components/ui/Switch';
-import { ConfirmModal } from '../../../components/ui/Modal';
+import { ConfirmModal, Modal } from '../../../components/ui/Modal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -62,6 +62,7 @@ export default function ProductsPage() {
     const [isBulkDelete, setIsBulkDelete] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+    const [isImportInfoModalOpen, setIsImportInfoModalOpen] = useState(false);
 
     // Mock initial data
     const [products, setProducts] = useState<Product[]>([
@@ -344,7 +345,7 @@ export default function ProductsPage() {
     };
 
     const handleImport = () => {
-        alert('Funcionalidade de importação seria implementada aqui (requer processamento de arquivo).');
+        setIsImportInfoModalOpen(true);
     };
 
     const allSelectedArePromoted = selectedProductIds.length > 0 && selectedProductIds.every(id =>
@@ -859,6 +860,22 @@ export default function ProductsPage() {
                 confirmText="Excluir"
                 variant="danger"
             />
+
+            {/* Import Info Modal */}
+            <Modal
+                isOpen={isImportInfoModalOpen}
+                onClose={() => setIsImportInfoModalOpen(false)}
+                title="Importar Produtos"
+            >
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    Funcionalidade de importação seria implementada aqui (requer processamento de arquivo).
+                </p>
+                <div className="flex justify-end">
+                    <Button onClick={() => setIsImportInfoModalOpen(false)}>
+                        Entendi
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 }

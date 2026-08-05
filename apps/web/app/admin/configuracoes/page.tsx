@@ -12,6 +12,7 @@ import { Modal } from '../../../components/ui/Modal';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('store');
+    const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
 
     const [storeSettings, setStoreSettings] = useState({
         name: 'Marialis Cosméticos',
@@ -136,7 +137,7 @@ export default function SettingsPage() {
             notifications: notificationSettings
         });
         // Here you would typically call an API to save the settings
-        alert('Configurações salvas com sucesso!');
+        setIsSavedModalOpen(true);
     };
 
     const tabs = [
@@ -758,6 +759,21 @@ export default function SettingsPage() {
                             </Button>
                         </div>
                     )}
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={isSavedModalOpen}
+                onClose={() => setIsSavedModalOpen(false)}
+                title="Configurações Salvas"
+            >
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    Configurações salvas com sucesso!
+                </p>
+                <div className="flex justify-end">
+                    <Button onClick={() => setIsSavedModalOpen(false)}>
+                        OK
+                    </Button>
                 </div>
             </Modal>
         </div>

@@ -5,6 +5,7 @@ import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { User, Package, MapPin, CreditCard, LogOut, ChevronRight, Edit2, Plus, X, Trash2, Check, AlertCircle, Search, Filter } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { Modal, ConfirmModal } from '../../components/ui/Modal';
 
 // Interfaces
 interface UserData {
@@ -110,11 +111,17 @@ export default function ProfilePage() {
     const [cardForm, setCardForm] = useState({ number: '', holder: '', expiry: '', cvv: '' });
 
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+    const [confirmState, setConfirmState] = useState<{ isOpen: boolean; description: string; onConfirm: () => void }>({
+        isOpen: false,
+        description: '',
+        onConfirm: () => {}
+    });
 
     // Handlers - User Data
     const handleSaveUserData = (e: React.FormEvent) => {
         e.preventDefault();
-        alert("Dados atualizados com sucesso!");
+        setIsSavedModalOpen(true);
     };
 
     // Handlers - Addresses
@@ -145,9 +152,11 @@ export default function ProfilePage() {
     };
 
     const handleDeleteAddress = (id: number) => {
-        if (confirm("Tem certeza que deseja excluir este endereço?")) {
-            setAddresses(addresses.filter(a => a.id !== id));
-        }
+        setConfirmState({
+            isOpen: true,
+            description: "Tem certeza que deseja excluir este endereço?",
+            onConfirm: () => setAddresses(prev => prev.filter(a => a.id !== id))
+        });
     };
 
     const handleSetDefaultAddress = (id: number) => {
@@ -171,9 +180,11 @@ export default function ProfilePage() {
     };
 
     const handleDeleteCard = (id: number) => {
-        if (confirm("Tem certeza que deseja remover este cartão?")) {
-            setCards(cards.filter(c => c.id !== id));
-        }
+        setConfirmState({
+            isOpen: true,
+            description: "Tem certeza que deseja remover este cartão?",
+            onConfirm: () => setCards(prev => prev.filter(c => c.id !== id))
+        });
     };
 
     const handleSetDefaultCard = (id: number) => {
@@ -706,6 +717,31 @@ export default function ProfilePage() {
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={confirmState.isOpen}
+                onClose={() => setConfirmState(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmState.onConfirm}
+                title="Confirmar Exclusão"
+                description={confirmState.description}
+                confirmText="Excluir"
+                variant="danger"
+            />
+
+            <Modal
+                isOpen={isSavedModalOpen}
+                onClose={() => setIsSavedModalOpen(false)}
+                title="Dados Atualizados"
+            >
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    Dados atualizados com sucesso!
+                </p>
+                <div className="flex justify-end">
+                    <Button onClick={() => setIsSavedModalOpen(false)}>
+                        OK
+                    </Button>
+                </div>
+            </Modal>
 
             <Footer />
         </main>
